@@ -1,0 +1,97 @@
+{
+  "version": 1,
+  "updated": "2026-10-10",
+  "schools": {
+    "timothy-christian-hs": {
+      "name": "Timothy Christian HS",
+      "timezone": "America/Chicago",
+      "week": {
+        "Monday": "tchs-monday",
+        "Tuesday": "tchs-monday",
+        "Wednesday": "tchs-monday",
+        "Thursday": "tchs-monday",
+        "Friday": "tchs-monday"
+      },
+      "templates": {
+        "tchs-monday": {
+          "label": "TCHS Monday",
+          "periods": [
+            {
+              "name": "1st Period",
+              "start": "08:15",
+              "end": "09:05",
+              "track": "both"
+            },
+            {
+              "name": "2nd Period",
+              "start": "09:09",
+              "end": "09:54",
+              "track": "both"
+            },
+            {
+              "name": "Break",
+              "start": "09:54",
+              "end": "10:02",
+              "track": "both"
+            },
+            {
+              "name": "3rd Period",
+              "start": "10:06",
+              "end": "10:51",
+              "track": "both"
+            },
+            {
+              "name": "4th Period",
+              "start": "10:55",
+              "end": "11:40",
+              "track": "both"
+            },
+            {
+              "name": "Lunch A",
+              "start": "11:40",
+              "end": "12:10",
+              "track": "A"
+            },
+            {
+              "name": "5th Period B",
+              "start": "11:44",
+              "end": "12:29",
+              "track": "B"
+            },
+            {
+              "name": "5th Period A",
+              "start": "12:14",
+              "end": "12:59",
+              "track": "A"
+            },
+            {
+              "name": "Lunch B",
+              "start": "12:29",
+              "end": "12:59",
+              "track": "B"
+            },
+            {
+              "name": "6th Period",
+              "start": "13:03",
+              "end": "13:48",
+              "track": "both"
+            },
+            {
+              "name": "7th Period",
+              "start": "13:52",
+              "end": "14:38",
+              "track": "both"
+            },
+            {
+              "name": "Focus Period",
+              "start": "14:42",
+              "end": "15:05",
+              "track": "both"
+            }
+          ]
+        }
+      },
+      "dates": {}
+    }
+  }
+}
