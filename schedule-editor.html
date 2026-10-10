@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bell Schedule Editor</title>
+<style>
+:root{
+  --bg:#f4f6f3; --card:#ffffff; --ink:#162118; --muted:#5d6b60; --line:#d7ddd6;
+  --accent:#2f6b3f; --accent-soft:#bce9a5; --warn:#8a6a00; --warn-bg:#fdf3cf;
+  --err:#9b2c20; --err-bg:#fbe6e3; --ok:#1d6b3a;
+  --radius:10px;
+  font-family:ui-sans-serif,system-ui,"Segoe UI",Roboto,sans-serif;
+  color:var(--ink); background:var(--bg);
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+}
+:root:not([data-theme=light]){ }
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --bg:#131814; --card:#1c231d; --ink:#e7efe6; --muted:#9aa89d; --line:#2e392f;
+  --accent:#8fd4a0; --accent-soft:#24402a; --warn:#e8c86a; --warn-bg:#3a3214;
+  --err:#f0a79c; --err-bg:#3d201c;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);min-height:100vh;display:flex;flex-direction:column}
+h1,h2,h3{margin:0;font-weight:700;letter-spacing:-.01em}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+
+/* ---------- top bar ---------- */
+header{background:var(--card);border-bottom:1px solid var(--line);padding:12px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:20}
+header h1{font-size:16px;white-space:nowrap}
+header .grow{flex:1}
+.pill{background:var(--accent-soft);color:var(--accent);font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.4px}
+.btn{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 13px;font-size:13px;font-weight:600}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.danger{color:var(--err)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{padding:4px 9px;font-size:12px}
+
+nav.tabs{display:flex;gap:4px;background:var(--card);border-bottom:1px solid var(--line);padding:0 16px;overflow-x:auto;position:sticky;top:53px;z-index:19}
+nav.tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:11px 14px;font-size:13.5px;font-weight:600;color:var(--muted);white-space:nowrap}
+nav.tabs button[aria-current]{color:var(--ink);border-bottom-color:var(--accent)}
+
+main{flex:1;padding:20px;max-width:1180px;width:100%;margin:0 auto}
+section[hidden]{display:none}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:16px}
+.card h2{font-size:14px;letter-spacing:.3px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+label.field{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;color:var(--muted)}
+label.field input,label.field select{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-size:14px;font-weight:400}
+.hint{font-size:12px;color:var(--muted);line-height:1.5}
+.empty{color:var(--muted);font-size:13px;padding:10px 0}
+
+/* ---------- lists ---------- */
+.itemlist{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.item{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.item.sel{border-color:var(--accent);background:var(--accent-soft)}
+.item .nm{flex:1;font-weight:600;font-size:14px;text-align:left;background:none;border:0;padding:0}
+.item .meta{font-size:12px;color:var(--muted)}
+.swatch{width:12px;height:12px;border-radius:3px;flex:none}
+
+/* ---------- period table ---------- */
+table.periods{width:100%;border-collapse:collapse;font-size:13.5px}
+table.periods th{text-align:left;font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);padding:6px 8px;font-weight:700}
+table.periods td{padding:4px 6px;border-top:1px solid var(--line)}
+table.periods input,table.periods select{width:100%;padding:7px 8px;border:1px solid var(--line);border-radius:7px;background:var(--bg)}
+table.periods input[type=time]{min-width:112px}
+table.periods td.x{width:34px}
+.trackA{color:#1d6b3a}.trackB{color:#8a5a00}
+
+/* ---------- calendar ---------- */
+.palette{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.swatchbtn{display:flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--card);border-radius:20px;padding:5px 12px;font-size:12.5px;font-weight:600}
+.swatchbtn[aria-pressed=true]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.months{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
+.month{border:1px solid var(--line);border-radius:var(--radius);padding:12px;background:var(--card)}
+.month h3{font-size:13px;margin-bottom:8px}
+.dow,.days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.dow span{font-size:9.5px;text-align:center;color:var(--muted);font-weight:700;padding-bottom:3px}
+.day{aspect-ratio:1;border:1px solid transparent;border-radius:6px;font-size:11.5px;display:flex;align-items:center;justify-content:center;background:var(--bg);user-select:none;position:relative}
+.day.out{visibility:hidden}
+.day.we{opacity:.38}
+.day.assigned{color:#10221a;font-weight:700}
+.day.today{outline:2px solid var(--accent);outline-offset:-2px}
+.legend{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.6}
+
+/* ---------- validation ---------- */
+.msg{padding:9px 12px;border-radius:8px;font-size:13px;margin-bottom:7px;line-height:1.45}
+.msg.err{background:var(--err-bg);color:var(--err)}
+.msg.warn{background:var(--warn-bg);color:var(--warn)}
+.msg.ok{background:var(--accent-soft);color:var(--ok)}
+pre.json{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px;overflow:auto;max-height:340px;font-size:12px;line-height:1.5}
+.banner{background:var(--warn-bg);color:var(--warn);padding:10px 14px;font-size:13px;line-height:1.5;border-bottom:1px solid var(--line)}
+ol.steps{padding-left:20px;line-height:1.65;font-size:14px}
+ol.steps li{margin-bottom:11px}
+code{background:var(--bg);border:1px solid var(--line);padding:1px 5px;border-radius:5px;font-size:12.5px}
+@media(max-width:620px){
+  main{padding:14px}
+  header{padding:10px 14px}
+  nav.tabs{top:49px}
+  table.periods input[type=time]{min-width:92px}
+}
+</style>
+</head>
+<body>
+<div id="banner" class="banner" hidden></div>
+
+<header>
+  <h1>Bell Schedule Editor</h1>
+  <span class="pill" id="dirty" hidden>Unsaved</span>
+  <div class="grow"></div>
+  <button class="btn" id="btn-import">Import file</button>
+  <button class="btn" id="btn-download">Download JSON</button>
+  <button class="btn" id="btn-pull">Load from GitHub</button>
+  <button class="btn primary" id="btn-push">Save to GitHub</button>
+  <input type="file" id="file" accept="application/json,.json" hidden>
+</header>
+
+<nav class="tabs">
+  <button data-tab="schools" aria-current="page">Schools</button>
+  <button data-tab="templates">Templates</button>
+  <button data-tab="calendar">Calendar</button>
+  <button data-tab="publish">Publish</button>
+  <button data-tab="setup">Setup</button>
+</nav>
+
+<main>
+  <!-- ============ SCHOOLS ============ -->
+  <section id="tab-schools">
+    <div class="card">
+      <h2>Schools</h2>
+      <div class="itemlist" id="school-list"></div>
+      <div class="row">
+        <button class="btn" id="add-school">+ Add school</button>
+        <span class="hint">Students pick from this list the first time they open the extension.</span>
+      </div>
+    </div>
+
+    <div class="card" id="school-detail">
+      <h2>School settings</h2>
+      <div class="grid2">
+        <label class="field">Name
+          <input id="s-name" placeholder="Crossroads Christian School">
+        </label>
+        <label class="field">Time zone
+          <select id="s-tz"></select>
+        </label>
+        <label class="field">Short ID <span class="hint" style="font-weight:400">used in the file; can't change</span>
+          <input id="s-id" disabled>
+        </label>
+      </div>
+      <h2 style="margin-top:20px">Normal week</h2>
+      <p class="hint" style="margin:0 0 10px">Pick which template runs on each ordinary weekday. Anything you set on the Calendar tab overrides this for that date.</p>
+      <div class="grid2" id="weekmap"></div>
+    </div>
+  </section>
+
+  <!-- ============ TEMPLATES ============ -->
+  <section id="tab-templates" hidden>
+    <div class="card">
+      <h2>Templates for <span id="tpl-school">—</span></h2>
+      <div class="itemlist" id="tpl-list"></div>
+      <div class="row">
+        <button class="btn" id="add-tpl">+ New template</button>
+        <button class="btn" id="dup-tpl">Duplicate selected</button>
+        <span class="hint">A template with no periods counts as a no-school day.</span>
+      </div>
+    </div>
+
+    <div class="card" id="tpl-detail" hidden>
+      <div class="row" style="margin-bottom:12px">
+        <label class="field" style="flex:1">Template name
+          <input id="t-label" placeholder="2-Hour Delay">
+        </label>
+        <button class="btn danger" id="del-tpl" style="align-self:flex-end">Delete template</button>
+      </div>
+      <table class="periods">
+        <thead><tr><th>Period name</th><th style="width:135px">Start</th><th style="width:135px">End</th><th style="width:120px">Track</th><th class="x"></th></tr></thead>
+        <tbody id="t-rows"></tbody>
+      </table>
+      <div class="row" style="margin-top:12px">
+        <button class="btn" id="add-row">+ Add period</button>
+        <button class="btn" id="sort-rows">Sort by start time</button>
+      </div>
+      <p class="hint" style="margin-top:12px"><b>Track</b> handles split lunches. <b>Both</b> shows for everyone. <b>A only</b> and <b>B only</b> show just to students on that lunch. Periods on different tracks are allowed to overlap each other.</p>
+      <div id="tpl-msgs" style="margin-top:12px"></div>
+    </div>
+  </section>
+
+  <!-- ============ CALENDAR ============ -->
+  <section id="tab-calendar" hidden>
+    <div class="card">
+      <h2>Special days for <span id="cal-school">—</span></h2>
+      <div class="row" style="margin-bottom:12px">
+        <label class="field">School year starts
+          <select id="cal-start"></select>
+        </label>
+        <label class="field">Months shown
+          <select id="cal-count"><option>10</option><option selected>11</option><option>12</option></select>
+        </label>
+      </div>
+      <p class="hint" style="margin-bottom:10px">Pick a template below, then click or drag across dates to assign it. Shift-click sets a range. Click an assigned date again with the same template to clear it.</p>
+      <div class="palette" id="palette"></div>
+      <div class="months" id="months"></div>
+      <p class="legend">Unmarked weekdays use the normal week from the Schools tab. Weekends are dimmed but can still be assigned, for a Saturday exam session.</p>
+    </div>
+  </section>
+
+  <!-- ============ PUBLISH ============ -->
+  <section id="tab-publish" hidden>
+    <div class="card">
+      <h2>Validation</h2>
+      <div id="val-msgs"></div>
+    </div>
+    <div class="card">
+      <h2>GitHub connection</h2>
+      <div class="grid2">
+        <label class="field">Owner (your username)<input id="g-owner" placeholder="quinn"></label>
+        <label class="field">Repository<input id="g-repo" placeholder="bell-schedules"></label>
+        <label class="field">Branch<input id="g-branch" placeholder="main"></label>
+        <label class="field">File path<input id="g-path" placeholder="overrides.json"></label>
+        <label class="field">Access token <span class="hint" style="font-weight:400">stored only in this browser</span>
+          <input id="g-token" type="password" placeholder="github_pat_...">
+        </label>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn" id="g-save">Save connection</button>
+        <button class="btn danger" id="g-clear">Forget token</button>
+        <span class="hint" id="g-status"></span>
+      </div>
+    </div>
+    <div class="card">
+      <h2>File preview</h2>
+      <pre class="json" id="preview"></pre>
+    </div>
+  </section>
+
+  <!-- ============ SETUP ============ -->
+  <section id="tab-setup" hidden>
+    <div class="card">
+      <h2>One-time setup</h2>
+      <ol class="steps">
+        <li><b>Create the repository.</b> On GitHub, click + → New repository. Name it <code>bell-schedules</code>, set it to <b>Public</b>, tick "Add a README file", and click Create. Public is required: students' extensions read this file without signing in, and it contains nothing but bell times.</li>
+        <li><b>Turn on GitHub Pages.</b> In the repo, go to Settings → Pages. Under "Build and deployment", set Source to <b>Deploy from a branch</b>, branch <code>main</code>, folder <code>/ (root)</code>, then Save. After a minute your files are live at <code>https://YOURNAME.github.io/bell-schedules/</code>.</li>
+        <li><b>Upload this editor.</b> In the repo's Code tab, click Add file → Upload files, drag in <code>schedule-editor.html</code>, and commit. From then on, open the editor at <code>https://YOURNAME.github.io/bell-schedules/schedule-editor.html</code>. Saving to GitHub only works from there or from your own computer — not from the preview link in chat.</li>
+        <li><b>Create an access token.</b> On GitHub go to your profile photo → Settings → Developer settings → Personal access tokens → <b>Fine-grained tokens</b> → Generate new token. Set: name anything, expiration 90 days, Repository access → <b>Only select repositories</b> → pick <code>bell-schedules</code>, then Permissions → Repository permissions → <b>Contents: Read and write</b>. Generate, then copy the token — GitHub shows it once.</li>
+        <li><b>Connect the editor.</b> On the Publish tab, fill in your owner name, repo, branch <code>main</code>, path <code>overrides.json</code>, paste the token, and click Save connection. The token stays in this browser's local storage and is never sent anywhere except GitHub.</li>
+        <li><b>Build your schedules.</b> Add your school, create templates for a normal day and any special days, map the normal week, then paint special dates on the calendar. Click Save to GitHub when done.</li>
+      </ol>
+      <p class="hint"><b>Prefer not to use a token?</b> Click Download JSON instead, then in the repo use Add file → Upload files and drop it in. Same result, one more step each time.</p>
+      <p class="hint"><b>When the token expires</b>, saving fails with a 401. Generate a new one the same way and paste it in again.</p>
+    </div>
+    <div class="card">
+      <h2>How the file is structured</h2>
+      <p class="hint">Every day is a template. The normal week maps weekdays to templates; the calendar overrides individual dates. A template with an empty period list means no school, which covers holidays without a special case. Because the regular schedule lives here too, adding a school never requires a new version of the extension.</p>
+    </div>
+  </section>
+</main>
+
+<script>
+/* ===================== state ===================== */
+const TZS=['America/Chicago','America/New_York','America/Denver','America/Los_Angeles','America/Phoenix','America/Anchorage','Pacific/Honolulu'];
+const DOW=['Monday','Tuesday','Wednesday','Thursday','Friday'];
+const MONTH_NAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const LS='bellEditor';
+
+let data=blank();
+let curSchool=null, curTpl=null, paint=null, lastClicked=null, dirty=false;
+let gh={owner:'',repo:'',branch:'main',path:'overrides.json',token:''};
+
+function blank(){return {version:1,updated:todayISO(),schools:{}}}
+function todayISO(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function slug(s){return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)||'item'}
+function uniqueKey(obj,base){let k=base,i=2;while(obj[k])k=base+'-'+(i++);return k}
+function $(id){return document.getElementById(id)}
+function mark(){dirty=true;$('dirty').hidden=false}
+
+/* deterministic color per template id */
+function hue(id){let h=0;for(const c of id)h=(h*31+c.charCodeAt(0))%360;return h}
+function tplColor(id){return `hsl(${hue(id)} 62% 76%)`}
+
+/* ===================== time helpers ===================== */
+function toMin(t){const m=/^(\d{1,2}):(\d{2})$/.exec(t||'');return m?(+m[1])*60+(+m[2]):null}
+function fmt(t){const v=toMin(t);if(v===null)return '—';const h=Math.floor(v/60),mi=v%60;return (h%12||12)+':'+String(mi).padStart(2,'0')+' '+(h>=12?'PM':'AM')}
+
+/* ===================== validation ===================== */
+function validate(d){
+  const errs=[],warns=[];
+  const schools=Object.entries(d.schools);
+  if(!schools.length)errs.push('No schools defined yet.');
+  for(const [sid,s] of schools){
+    if(!s.name||!s.name.trim())errs.push(`School "${sid}" has no name.`);
+    const tpls=Object.entries(s.templates||{});
+    if(!tpls.length)warns.push(`${s.name||sid}: no templates yet.`);
+    for(const [tid,t] of tpls){
+      const label=t.label||tid;
+      const rows=t.periods||[];
+      if(!rows.length){warns.push(`${s.name}: "${label}" has no periods — it will show as a no-school day.`);continue}
+      rows.forEach((r,i)=>{
+        if(!r.name||!r.name.trim())errs.push(`${s.name} / ${label}: period ${i+1} has no name.`);
+        const a=toMin(r.start),b=toMin(r.end);
+        if(a===null||b===null)errs.push(`${s.name} / ${label}: "${r.name||'period '+(i+1)}" has an invalid time.`);
+        else if(b<=a)errs.push(`${s.name} / ${label}: "${r.name}" ends before it starts.`);
+      });
+      for(const track of ['A','B']){
+        const inTrack=rows.filter(r=>r.track==='both'||r.track===track)
+          .filter(r=>toMin(r.start)!==null&&toMin(r.end)!==null)
+          .sort((x,y)=>toMin(x.start)-toMin(y.start));
+        for(let i=1;i<inTrack.length;i++){
+          const prev=inTrack[i-1],cur=inTrack[i];
+          if(toMin(cur.start)<toMin(prev.end))
+            errs.push(`${s.name} / ${label}: "${prev.name}" and "${cur.name}" overlap on the ${track} track.`);
+        }
+      }
+    }
+    for(const [day,tid] of Object.entries(s.week||{}))
+      if(tid&&!(s.templates||{})[tid])errs.push(`${s.name}: ${day} points at a template that no longer exists.`);
+    for(const [date,tid] of Object.entries(s.dates||{}))
+      if(!(s.templates||{})[tid])errs.push(`${s.name}: ${date} points at a template that no longer exists.`);
+    const unmapped=DOW.filter(x=>!(s.week||{})[x]);
+    if(unmapped.length)warns.push(`${s.name}: no normal template set for ${unmapped.join(', ')}.`);
+  }
+  return {errs,warns};
+}
+
+/* ===================== rendering ===================== */
+function renderSchools(){
+  const box=$('school-list');box.innerHTML='';
+  const ids=Object.keys(data.schools);
+  if(!ids.length){box.innerHTML='<div class="empty">No schools yet. Add one to begin.</div>'}
+  ids.forEach(id=>{
+    const s=data.schools[id];
+    const el=document.createElement('div');
+    el.className='item'+(id===curSchool?' sel':'');
+    const n=document.createElement('button');n.className='nm';n.textContent=s.name||id;
+    n.onclick=()=>{curSchool=id;curTpl=null;renderAll()};
+    const meta=document.createElement('span');meta.className='meta';
+    meta.textContent=`${Object.keys(s.templates||{}).length} templates · ${Object.keys(s.dates||{}).length} special days`;
+    const del=document.createElement('button');del.className='btn sm danger';del.textContent='Delete';
+    del.onclick=()=>{if(confirm(`Delete ${s.name}? This removes its templates and calendar.`)){delete data.schools[id];if(curSchool===id)curSchool=Object.keys(data.schools)[0]||null;mark();renderAll()}};
+    el.append(n,meta,del);box.appendChild(el);
+  });
+
+  const d=$('school-detail');
+  if(!curSchool){d.hidden=true;return}
+  d.hidden=false;
+  const s=data.schools[curSchool];
+  $('s-name').value=s.name||'';
+  $('s-id').value=curSchool;
+  $('s-tz').innerHTML=TZS.map(t=>`<option${t===s.timezone?' selected':''}>${t}</option>`).join('');
+  const wm=$('weekmap');wm.innerHTML='';
+  DOW.forEach(day=>{
+    const lab=document.createElement('label');lab.className='field';lab.textContent=day;
+    const sel=document.createElement('select');
+    sel.innerHTML='<option value="">— none —</option>'+Object.entries(s.templates||{})
+      .map(([tid,t])=>`<option value="${tid}"${(s.week||{})[day]===tid?' selected':''}>${t.label||tid}</option>`).join('');
+    sel.onchange=()=>{s.week=s.week||{};if(sel.value)s.week[day]=sel.value;else delete s.week[day];mark();renderPublish()};
+    lab.appendChild(sel);wm.appendChild(lab);
+  });
+}
+
+function renderTemplates(){
+  $('tpl-school').textContent=curSchool?(data.schools[curSchool].name||curSchool):'—';
+  const box=$('tpl-list');box.innerHTML='';
+  if(!curSchool){box.innerHTML='<div class="empty">Pick a school first.</div>';$('tpl-detail').hidden=true;return}
+  const s=data.schools[curSchool];
+  const ids=Object.keys(s.templates||{});
+  if(!ids.length)box.innerHTML='<div class="empty">No templates yet.</div>';
+  ids.forEach(tid=>{
+    const t=s.templates[tid];
+    const el=document.createElement('div');el.className='item'+(tid===curTpl?' sel':'');
+    const sw=document.createElement('span');sw.className='swatch';sw.style.background=tplColor(tid);
+    const n=document.createElement('button');n.className='nm';n.textContent=t.label||tid;
+    n.onclick=()=>{curTpl=tid;renderTemplates()};
+    const meta=document.createElement('span');meta.className='meta';
+    const rows=t.periods||[];
+    meta.textContent=rows.length?`${rows.length} periods · ${fmt(rows[0].start)}–${fmt(rows[rows.length-1].end)}`:'no school';
+    el.append(sw,n,meta);box.appendChild(el);
+  });
+
+  const d=$('tpl-detail');
+  if(!curTpl||!(s.templates||{})[curTpl]){d.hidden=true;return}
+  d.hidden=false;
+  const t=s.templates[curTpl];
+  $('t-label').value=t.label||'';
+  const tb=$('t-rows');tb.innerHTML='';
+  (t.periods||[]).forEach((r,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><input value="${(r.name||'').replace(/"/g,'&quot;')}" data-k="name"></td>
+      <td><input type="time" value="${r.start||''}" data-k="start"></td>
+      <td><input type="time" value="${r.end||''}" data-k="end"></td>
+      <td><select data-k="track">
+        <option value="both"${r.track==='both'?' selected':''}>Both</option>
+        <option value="A"${r.track==='A'?' selected':''}>A only</option>
+        <option value="B"${r.track==='B'?' selected':''}>B only</option>
+      </select></td>
+      <td class="x"><button class="btn sm danger" title="Remove">×</button></td>`;
+    tr.querySelectorAll('[data-k]').forEach(inp=>{
+      inp.oninput=()=>{t.periods[i][inp.dataset.k]=inp.value;mark();renderTplMsgs();renderPublish()};
+    });
+    tr.querySelector('button').onclick=()=>{t.periods.splice(i,1);mark();renderTemplates();renderPublish()};
+    tb.appendChild(tr);
+  });
+  renderTplMsgs();
+}
+
+function renderTplMsgs(){
+  if(!curSchool||!curTpl)return;
+  const probe={version:1,updated:data.updated,schools:{[curSchool]:{...data.schools[curSchool],week:{},dates:{},templates:{[curTpl]:data.schools[curSchool].templates[curTpl]}}}};
+  const {errs,warns}=validate(probe);
+  $('tpl-msgs').innerHTML=[...errs.map(e=>`<div class="msg err">${e}</div>`),...warns.map(w=>`<div class="msg warn">${w}</div>`)].join('')
+    ||'<div class="msg ok">This template is valid.</div>';
+}
+
+function renderCalendar(){
+  $('cal-school').textContent=curSchool?(data.schools[curSchool].name||curSchool):'—';
+  const pal=$('palette'),months=$('months');
+  pal.innerHTML='';months.innerHTML='';
+  if(!curSchool){months.innerHTML='<div class="empty">Pick a school first.</div>';return}
+  const s=data.schools[curSchool];
+
+  Object.entries(s.templates||{}).forEach(([tid,t])=>{
+    const b=document.createElement('button');b.className='swatchbtn';
+    b.setAttribute('aria-pressed',paint===tid);
+    b.innerHTML=`<span class="swatch" style="background:${tplColor(tid)}"></span>${t.label||tid}`;
+    b.onclick=()=>{paint=paint===tid?null:tid;renderCalendar()};
+    pal.appendChild(b);
+  });
+  const clr=document.createElement('button');clr.className='swatchbtn';
+  clr.setAttribute('aria-pressed',paint==='__clear');
+  clr.innerHTML='<span class="swatch" style="background:var(--line)"></span>Clear';
+  clr.onclick=()=>{paint=paint==='__clear'?null:'__clear';renderCalendar()};
+  pal.appendChild(clr);
+
+  const startVal=$('cal-start').value.split('-');
+  let y=+startVal[0],m=+startVal[1]-1;
+  const count=+$('cal-count').value;
+  for(let k=0;k<count;k++){
+    months.appendChild(monthEl(y,m,s));
+    m++;if(m>11){m=0;y++}
+  }
+}
+
+function monthEl(y,m,s){
+  const wrap=document.createElement('div');wrap.className='month';
+  const h=document.createElement('h3');h.textContent=`${MONTH_NAMES[m]} ${y}`;wrap.appendChild(h);
+  const dow=document.createElement('div');dow.className='dow';
+  dow.innerHTML=['S','M','T','W','T','F','S'].map(d=>`<span>${d}</span>`).join('');
+  wrap.appendChild(dow);
+  const days=document.createElement('div');days.className='days';
+  const first=new Date(y,m,1).getDay(), total=new Date(y,m+1,0).getDate();
+  for(let i=0;i<first;i++){const e=document.createElement('div');e.className='day out';days.appendChild(e)}
+  for(let d=1;d<=total;d++){
+    const iso=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const cell=document.createElement('div');
+    const wd=new Date(y,m,d).getDay();
+    cell.className='day'+((wd===0||wd===6)?' we':'');
+    if(iso===todayISO())cell.classList.add('today');
+    cell.textContent=d;cell.dataset.iso=iso;
+    const tid=(s.dates||{})[iso];
+    if(tid&&(s.templates||{})[tid]){
+      cell.classList.add('assigned');
+      cell.style.background=tplColor(tid);
+      cell.title=`${iso} · ${s.templates[tid].label||tid}`;
+    }else cell.title=iso;
+    cell.onmousedown=e=>{e.preventDefault();applyPaint(iso,e.shiftKey);window.__painting=true};
+    cell.onmouseenter=()=>{if(window.__painting)applyPaint(iso,false)};
+    days.appendChild(cell);
+  }
+  wrap.appendChild(days);
+  return wrap;
+}
+
+function applyPaint(iso,range){
+  if(!curSchool||!paint)return;
+  const s=data.schools[curSchool];s.dates=s.dates||{};
+  let list=[iso];
+  if(range&&lastClicked){
+    const a=new Date(lastClicked+'T00:00'),b=new Date(iso+'T00:00');
+    const [lo,hi]=a<=b?[a,b]:[b,a];list=[];
+    for(let d=new Date(lo);d<=hi;d.setDate(d.getDate()+1))
+      list.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'));
+  }
+  list.forEach(day=>{
+    if(paint==='__clear')delete s.dates[day];
+    else if(s.dates[day]===paint)delete s.dates[day];
+    else s.dates[day]=paint;
+  });
+  lastClicked=iso;mark();renderCalendar();renderPublish();
+}
+document.addEventListener('mouseup',()=>{window.__painting=false});
+
+function renderPublish(){
+  const {errs,warns}=validate(data);
+  $('val-msgs').innerHTML=[...errs.map(e=>`<div class="msg err">${e}</div>`),...warns.map(w=>`<div class="msg warn">${w}</div>`)].join('')
+    ||'<div class="msg ok">Everything checks out. Safe to publish.</div>';
+  $('btn-push').disabled=errs.length>0||!gh.token;
+  $('preview').textContent=JSON.stringify(serialize(),null,2);
+}
+
+function renderAll(){renderSchools();renderTemplates();renderCalendar();renderPublish()}
+
+/* ===================== serialize ===================== */
+function serialize(){
+  const out={version:1,updated:todayISO(),schools:{}};
+  Object.entries(data.schools).forEach(([sid,s])=>{
+    const tpls={};
+    Object.entries(s.templates||{}).forEach(([tid,t])=>{
+      tpls[tid]={label:t.label||tid,periods:(t.periods||[]).slice()
+        .sort((a,b)=>(toMin(a.start)??0)-(toMin(b.start)??0))
+        .map(r=>({name:r.name,start:r.start,end:r.end,track:r.track||'both'}))};
+    });
+    const dates={};Object.keys(s.dates||{}).sort().forEach(d=>dates[d]=s.dates[d]);
+    out.schools[sid]={name:s.name,timezone:s.timezone||'America/Chicago',week:s.week||{},templates:tpls,dates};
+  });
+  return out;
+}
+
+/* ===================== GitHub ===================== */
+const PREVIEW_HOST=/(^|\.)claude\.ai$/.test(location.hostname);
+function b64(str){const bytes=new TextEncoder().encode(str);let bin='';for(let i=0;i<bytes.length;i+=0x8000)bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000));return btoa(bin)}
+function unb64(s){const bin=atob(s.replace(/\s/g,''));const arr=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);return new TextDecoder().decode(arr)}
+function api(path,opts={}){
+  return fetch(`https://api.github.com/repos/${gh.owner}/${gh.repo}/contents/${path}`,{
+    ...opts, headers:{Accept:'application/vnd.github+json',Authorization:'Bearer '+gh.token,'X-GitHub-Api-Version':'2022-11-28',...(opts.headers||{})}
+  });
+}
+async function pull(){
+  if(PREVIEW_HOST)return status('GitHub sync is blocked in the chat preview. Host this file on your Pages site and use it there.',true);
+  if(!gh.token||!gh.owner||!gh.repo)return status('Fill in the GitHub connection first.',true);
+  try{
+    const r=await api(`${gh.path}?ref=${encodeURIComponent(gh.branch)}`);
+    if(r.status===404)return status('No file there yet — saving will create it.',false);
+    if(!r.ok)return status(`GitHub said ${r.status}. ${r.status===401?'Token is wrong or expired.':''}`,true);
+    const j=await r.json();
+    const parsed=JSON.parse(unb64(j.content));
+    if(!parsed.schools)throw new Error('That file has no "schools" key.');
+    data=parsed;curSchool=Object.keys(data.schools)[0]||null;curTpl=null;
+    dirty=false;$('dirty').hidden=true;renderAll();
+    status('Loaded from GitHub.',false);
+  }catch(e){status('Could not load: '+e.message,true)}
+}
+async function push(){
+  if(PREVIEW_HOST)return status('GitHub sync is blocked in the chat preview. Use Download JSON here, or host this editor on your Pages site.',true);
+  const {errs}=validate(data);
+  if(errs.length)return status('Fix the validation errors first.',true);
+  try{
+    let sha=null;
+    const head=await api(`${gh.path}?ref=${encodeURIComponent(gh.branch)}`);
+    if(head.ok)sha=(await head.json()).sha;
+    const r=await api(gh.path,{method:'PUT',body:JSON.stringify({
+      message:`Update bell schedules (${todayISO()})`,
+      content:b64(JSON.stringify(serialize(),null,2)),
+      branch:gh.branch,...(sha?{sha}:{})
+    })});
+    if(!r.ok){const t=await r.text();return status(`Save failed (${r.status}). ${r.status===401?'Token wrong or expired.':r.status===403?'Token lacks Contents: Read and write.':t.slice(0,120)}`,true)}
+    dirty=false;$('dirty').hidden=true;
+    status('Saved. Students see it within the hour.',false);
+  }catch(e){status('Save failed: '+e.message,true)}
+}
+function status(msg,bad){const el=$('g-status');el.textContent=msg;el.style.color=bad?'var(--err)':'var(--ok)'}
+
+/* ===================== wiring ===================== */
+document.querySelectorAll('nav.tabs button').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('nav.tabs button').forEach(x=>x===b?x.setAttribute('aria-current','page'):x.removeAttribute('aria-current'));
+    ['schools','templates','calendar','publish','setup'].forEach(t=>$('tab-'+t).hidden=(t!==b.dataset.tab));
+    if(b.dataset.tab==='publish')renderPublish();
+  };
+});
+
+$('add-school').onclick=()=>{
+  const name=prompt('School name?');if(!name)return;
+  const id=uniqueKey(data.schools,slug(name));
+  data.schools[id]={name,timezone:'America/Chicago',week:{},templates:{},dates:{}};
+  curSchool=id;curTpl=null;mark();renderAll();
+};
+$('s-name').oninput=e=>{if(curSchool){data.schools[curSchool].name=e.target.value;mark();renderSchools();renderPublish()}};
+$('s-tz').onchange=e=>{if(curSchool){data.schools[curSchool].timezone=e.target.value;mark();renderPublish()}};
+
+$('add-tpl').onclick=()=>{
+  if(!curSchool)return alert('Add a school first.');
+  const label=prompt('Template name? (e.g. Regular Day, 2-Hour Delay, Assembly, No School)');if(!label)return;
+  const s=data.schools[curSchool];s.templates=s.templates||{};
+  const id=uniqueKey(s.templates,slug(label));
+  s.templates[id]={label,periods:[]};curTpl=id;mark();renderAll();
+};
+$('dup-tpl').onclick=()=>{
+  if(!curSchool||!curTpl)return alert('Select a template to duplicate.');
+  const s=data.schools[curSchool],src=s.templates[curTpl];
+  const label=prompt('Name for the copy?',(src.label||curTpl)+' (copy)');if(!label)return;
+  const id=uniqueKey(s.templates,slug(label));
+  s.templates[id]={label,periods:JSON.parse(JSON.stringify(src.periods||[]))};
+  curTpl=id;mark();renderAll();
+};
+$('del-tpl').onclick=()=>{
+  if(!curSchool||!curTpl)return;
+  const s=data.schools[curSchool];
+  const used=Object.values(s.week||{}).includes(curTpl)||Object.values(s.dates||{}).includes(curTpl);
+  if(!confirm(used?'This template is in use on the normal week or the calendar. Delete anyway?':'Delete this template?'))return;
+  delete s.templates[curTpl];
+  Object.keys(s.week||{}).forEach(d=>{if(s.week[d]===curTpl)delete s.week[d]});
+  Object.keys(s.dates||{}).forEach(d=>{if(s.dates[d]===curTpl)delete s.dates[d]});
+  curTpl=null;mark();renderAll();
+};
+$('t-label').oninput=e=>{if(curSchool&&curTpl){data.schools[curSchool].templates[curTpl].label=e.target.value;mark();renderSchools();renderPublish()}};
+$('add-row').onclick=()=>{
+  const t=data.schools[curSchool].templates[curTpl];t.periods=t.periods||[];
+  const last=t.periods[t.periods.length-1];
+  t.periods.push({name:'',start:last?last.end:'08:15',end:'',track:'both'});
+  mark();renderTemplates();
+};
+$('sort-rows').onclick=()=>{
+  const t=data.schools[curSchool].templates[curTpl];
+  t.periods.sort((a,b)=>(toMin(a.start)??0)-(toMin(b.start)??0));mark();renderTemplates();
+};
+
+$('cal-start').onchange=renderCalendar;
+$('cal-count').onchange=renderCalendar;
+
+$('btn-download').onclick=()=>{
+  const blob=new Blob([JSON.stringify(serialize(),null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='overrides.json';a.click();
+  URL.revokeObjectURL(a.href);
+};
+$('btn-import').onclick=()=>$('file').click();
+$('file').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{try{
+    const parsed=JSON.parse(r.result);
+    if(!parsed.schools)throw new Error('No "schools" key in that file.');
+    data=parsed;curSchool=Object.keys(data.schools)[0]||null;curTpl=null;mark();renderAll();
+  }catch(err){alert('Could not read that file: '+err.message)}};
+  r.readAsText(f);e.target.value='';
+};
+$('btn-pull').onclick=pull;
+$('btn-push').onclick=push;
+$('g-save').onclick=()=>{
+  gh={owner:$('g-owner').value.trim(),repo:$('g-repo').value.trim(),branch:$('g-branch').value.trim()||'main',path:$('g-path').value.trim()||'overrides.json',token:$('g-token').value.trim()};
+  try{localStorage.setItem(LS,JSON.stringify(gh))}catch(e){}
+  status('Connection saved in this browser.',false);renderPublish();
+};
+$('g-clear').onclick=()=>{
+  gh.token='';$('g-token').value='';
+  try{localStorage.setItem(LS,JSON.stringify({...gh,token:''}))}catch(e){}
+  status('Token forgotten.',false);renderPublish();
+};
+window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
+
+/* ===================== boot ===================== */
+(function init(){
+  // school-year start options: Aug of this year back/forward a little
+  const now=new Date(),y=now.getFullYear(),sel=$('cal-start');
+  const opts=[];
+  for(const yr of [y-1,y,y+1])for(const mo of [7,8])opts.push([`${yr}-${String(mo+1).padStart(2,'0')}`,`${MONTH_NAMES[mo]} ${yr}`]);
+  sel.innerHTML=opts.map(([v,l])=>`<option value="${v}">${l}</option>`).join('');
+  const defaultStart=(now.getMonth()>=7?y:y-1)+'-08';
+  sel.value=opts.some(o=>o[0]===defaultStart)?defaultStart:opts[0][0];
+
+  try{const saved=JSON.parse(localStorage.getItem(LS)||'null');if(saved)gh={...gh,...saved}}catch(e){}
+  $('g-owner').value=gh.owner;$('g-repo').value=gh.repo;$('g-branch').value=gh.branch;$('g-path').value=gh.path;$('g-token').value=gh.token;
+
+  if(PREVIEW_HOST){
+    const b=$('banner');b.hidden=false;
+    b.innerHTML='<b>Preview mode.</b> Everything works except saving straight to GitHub, which this preview blocks for security. Use <b>Download JSON</b> here, or upload this editor to your Pages site and run it from there. See the Setup tab.';
+  }
+  renderAll();
+})();
+</script>
+</body>
+</html>
