@@ -180,6 +180,92 @@
       "announcement": {
         "text": "test"
       }
+    },
+    "test-3": {
+      "name": "test 3",
+      "timezone": "America/Chicago",
+      "week": {
+        "Monday": "1",
+        "Tuesday": "1-copy",
+        "Wednesday": "1-copy-copy",
+        "Thursday": "1-copy-copy-copy",
+        "Friday": "1-copy-copy-copy-copy"
+      },
+      "templates": {
+        "1": {
+          "label": "1",
+          "periods": [
+            {
+              "name": "1",
+              "start": "08:00",
+              "end": "11:11",
+              "track": "both"
+            }
+          ]
+        },
+        "1-copy": {
+          "label": "1 (copy)",
+          "periods": [
+            {
+              "name": "1",
+              "start": "08:00",
+              "end": "11:11",
+              "track": "both"
+            }
+          ]
+        },
+        "1-copy-copy": {
+          "label": "1 (copy) (copy)",
+          "periods": [
+            {
+              "name": "1",
+              "start": "08:00",
+              "end": "11:11",
+              "track": "both"
+            }
+          ]
+        },
+        "1-copy-copy-copy": {
+          "label": "1 (copy) (copy) (copy)",
+          "periods": [
+            {
+              "name": "1",
+              "start": "08:00",
+              "end": "11:11",
+              "track": "both"
+            }
+          ]
+        },
+        "1-copy-copy-copy-copy": {
+          "label": "1 (copy) (copy) (copy) (copy)",
+          "periods": [
+            {
+              "name": "1",
+              "start": "08:00",
+              "end": "11:11",
+              "track": "both"
+            }
+          ]
+        },
+        "1-copy-copy-copy-copy-copy": {
+          "label": "1 (copy) (copy) (copy) (copy) (copy)",
+          "periods": [
+            {
+              "name": "1",
+              "start": "08:00",
+              "end": "11:11",
+              "track": "both"
+            }
+          ]
+        }
+      },
+      "dates": {
+        "2026-10-20": "1-copy-copy-copy-copy-copy",
+        "2026-10-29": "1-copy-copy-copy-copy-copy"
+      },
+      "announcement": {
+        "text": "33"
+      }
     }
   }
 }
