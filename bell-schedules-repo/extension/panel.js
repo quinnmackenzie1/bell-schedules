@@ -137,12 +137,12 @@ function render() {
   const tag = s.isOverride && s.templateLabel ? 'Special schedule \u00b7 ' + s.templateLabel
     : s.cycleDay ? s.cycleDay + (s.templateLabel ? ' \u00b7 ' + s.templateLabel : '')
     : null;
+  sp.textContent = tag || '';
   sp.hidden = !tag;
-  if (tag) sp.textContent = tag;
 
   const nt = $('notice');
+  nt.textContent = s.announcement || '';
   nt.hidden = !s.announcement;
-  if (s.announcement) nt.textContent = s.announcement;
 
   const cp = new Intl.DateTimeFormat('en-US',
     { timeZone: s.zone, hour: 'numeric', minute: '2-digit', hour12: true }).formatToParts(now);
