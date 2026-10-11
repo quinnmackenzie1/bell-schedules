@@ -115,8 +115,9 @@ code{background:var(--bg);border:1px solid var(--line);padding:1px 5px;border-ra
   <div class="grow"></div>
   <button class="btn" id="btn-import">Import file</button>
   <button class="btn" id="btn-download">Download JSON</button>
-  <button class="btn" id="btn-pull">Load from GitHub</button>
-  <button class="btn primary" id="btn-push">Save to GitHub</button>
+  <button class="btn" id="btn-pull">Load draft</button>
+  <button class="btn" id="btn-push">Save draft</button>
+  <button class="btn primary" id="btn-publish">Publish to students</button>
   <input type="file" id="file" accept="application/json,.json" hidden>
 </header>
 
@@ -124,6 +125,7 @@ code{background:var(--bg);border:1px solid var(--line);padding:1px 5px;border-ra
   <button data-tab="schools" aria-current="page">Schools</button>
   <button data-tab="templates">Templates</button>
   <button data-tab="calendar">Calendar</button>
+  <button data-tab="preview">Preview</button>
   <button data-tab="publish">Publish</button>
   <button data-tab="setup">Setup</button>
 </nav>
@@ -153,9 +155,42 @@ code{background:var(--bg);border:1px solid var(--line);padding:1px 5px;border-ra
           <input id="s-id" disabled>
         </label>
       </div>
-      <h2 style="margin-top:20px">Normal week</h2>
-      <p class="hint" style="margin:0 0 10px">Pick which template runs on each ordinary weekday. Anything you set on the Calendar tab overrides this for that date.</p>
-      <div class="grid2" id="weekmap"></div>
+      <h2 style="margin-top:20px">Announcement</h2>
+      <p class="hint" style="margin:0 0 10px">Shows at the top of every student's clock for this school. Leave the text empty for none.</p>
+      <div class="grid2">
+        <label class="field">Message
+          <input id="s-ann" maxlength="120" placeholder="Pep rally schedule today — check the times">
+        </label>
+        <label class="field">Hide after <span class="hint" style="font-weight:400">optional</span>
+          <input type="date" id="s-annuntil">
+        </label>
+      </div>
+
+      <h2 style="margin-top:20px">How ordinary days work</h2>
+      <div class="row" style="margin-bottom:12px">
+        <label class="field">Scheduling mode
+          <select id="s-mode">
+            <option value="week">Same every week (Monday, Tuesday…)</option>
+            <option value="rotation">Rotating cycle (Day 1, Day 2…)</option>
+          </select>
+        </label>
+      </div>
+
+      <div id="weekbox">
+        <p class="hint" style="margin:0 0 10px">Pick which template runs on each ordinary weekday. Anything on the Calendar tab overrides this for that date.</p>
+        <div class="grid2" id="weekmap"></div>
+      </div>
+
+      <div id="rotbox" hidden>
+        <p class="hint" style="margin:0 0 10px">The cycle advances on school days only: weekends and any date you mark as a no-school template are stepped over rather than using up a day.</p>
+        <div class="grid2">
+          <label class="field">Day 1 falls on<input type="date" id="r-start"></label>
+          <label class="field">Days in the cycle
+            <select id="r-count"><option>2</option><option>3</option><option>4</option><option>5</option><option selected>6</option><option>7</option><option>8</option></select>
+          </label>
+        </div>
+        <div class="grid2" id="rotmap" style="margin-top:12px"></div>
+      </div>
     </div>
   </section>
 
@@ -185,6 +220,39 @@ code{background:var(--bg);border:1px solid var(--line);padding:1px 5px;border-ra
       <div class="row" style="margin-top:12px">
         <button class="btn" id="add-row">+ Add period</button>
         <button class="btn" id="sort-rows">Sort by start time</button>
+        <button class="btn" id="gen-toggle">Build from class length…</button>
+      </div>
+
+      <div class="card" id="gen-box" hidden style="margin-top:14px;background:var(--bg)">
+        <h2>Build a day from class length</h2>
+        <p class="hint" style="margin:0 0 12px">Fill these in and the periods are laid out for you. You can edit every row afterwards — this is a starting point, not a lock.</p>
+        <div class="grid2">
+          <label class="field">First period starts<input type="time" id="g-start" value="08:00"></label>
+          <label class="field">Number of periods<input type="number" id="g-count" value="7" min="1" max="12"></label>
+          <label class="field">Class length (minutes)<input type="number" id="g-class" value="45" min="5" max="180"></label>
+          <label class="field">Passing period (minutes)<input type="number" id="g-pass" value="4" min="0" max="30"></label>
+        </div>
+        <h2 style="margin-top:18px">Optional extras</h2>
+        <div class="grid2">
+          <label class="field">Break after period <span class="hint" style="font-weight:400">0 = none</span>
+            <input type="number" id="g-breakafter" value="0" min="0" max="12"></label>
+          <label class="field">Break length (minutes)<input type="number" id="g-breaklen" value="10" min="0" max="60"></label>
+          <label class="field">Lunch after period <span class="hint" style="font-weight:400">0 = none</span>
+            <input type="number" id="g-lunchafter" value="0" min="0" max="12"></label>
+          <label class="field">Lunch length (minutes)<input type="number" id="g-lunchlen" value="30" min="10" max="90"></label>
+          <label class="field">Lunch tracks
+            <select id="g-tracks">
+              <option value="1">One lunch for everyone</option>
+              <option value="2">Two (A and B)</option>
+              <option value="3">Three (A, B and C)</option>
+            </select>
+          </label>
+        </div>
+        <div class="row" style="margin-top:14px">
+          <button class="btn primary" id="gen-run">Generate periods</button>
+          <button class="btn" id="gen-cancel">Cancel</button>
+          <span class="hint">Replaces every period currently in this template.</span>
+        </div>
       </div>
       <p class="hint" style="margin-top:12px"><b>Track</b> handles split lunches. <b>Both</b> shows for everyone. <b>A only</b> and <b>B only</b> show just to students on that lunch. Periods on different tracks are allowed to overlap each other.</p>
       <div id="tpl-msgs" style="margin-top:12px"></div>
@@ -210,6 +278,31 @@ code{background:var(--bg);border:1px solid var(--line);padding:1px 5px;border-ra
     </div>
   </section>
 
+  <!-- ============ PREVIEW ============ -->
+  <section id="tab-preview" hidden>
+    <div class="card">
+      <h2>What students will see</h2>
+      <div class="row" style="margin-bottom:14px">
+        <label class="field">Date<input type="date" id="pv-date"></label>
+        <label class="field">Lunch track
+          <select id="pv-track"></select>
+        </label>
+        <button class="btn" id="pv-today" style="align-self:flex-end">Jump to today</button>
+      </div>
+      <div id="pv-out"></div>
+    </div>
+
+    <div class="card">
+      <h2>Whole-year check</h2>
+      <div class="row" style="margin-bottom:12px">
+        <label class="field">From<input type="date" id="yc-from"></label>
+        <label class="field">To<input type="date" id="yc-to"></label>
+        <button class="btn primary" id="yc-run" style="align-self:flex-end">Check every day</button>
+      </div>
+      <div id="yc-out"><p class="hint">Scans each weekday in the range and reports days with no schedule, suspicious gaps, and rotation problems.</p></div>
+    </div>
+  </section>
+
   <!-- ============ PUBLISH ============ -->
   <section id="tab-publish" hidden>
     <div class="card">
@@ -222,7 +315,10 @@ code{background:var(--bg);border:1px solid var(--line);padding:1px 5px;border-ra
         <label class="field">Owner (your username)<input id="g-owner" placeholder="quinn"></label>
         <label class="field">Repository<input id="g-repo" placeholder="bell-schedules"></label>
         <label class="field">Branch<input id="g-branch" placeholder="main"></label>
-        <label class="field">File path<input id="g-path" placeholder="overrides.json"></label>
+        <label class="field">Live file <span class="hint" style="font-weight:400">what students read</span>
+          <input id="g-path" placeholder="overrides.json"></label>
+        <label class="field">Draft file <span class="hint" style="font-weight:400">your working copy</span>
+          <input id="g-draft" placeholder="overrides-draft.json"></label>
         <label class="field">Access token <span class="hint" style="font-weight:400">stored only in this browser</span>
           <input id="g-token" type="password" placeholder="github_pat_...">
         </label>
@@ -230,9 +326,19 @@ code{background:var(--bg);border:1px solid var(--line);padding:1px 5px;border-ra
       <div class="row" style="margin-top:12px">
         <button class="btn" id="g-save">Save connection</button>
         <button class="btn danger" id="g-clear">Forget token</button>
+        <button class="btn danger" id="d-clear">Discard local draft</button>
         <span class="hint" id="g-status"></span>
       </div>
     </div>
+    <div class="card">
+      <h2>Recent published versions</h2>
+      <div class="row" style="margin-bottom:10px">
+        <button class="btn" id="h-load">Load history</button>
+        <span class="hint">Every publish is a commit. Restoring one republishes it as a new version — nothing is erased.</span>
+      </div>
+      <div id="h-out"></div>
+    </div>
+
     <div class="card">
       <h2>File preview</h2>
       <pre class="json" id="preview"></pre>
@@ -262,70 +368,316 @@ code{background:var(--bg);border:1px solid var(--line);padding:1px 5px;border-ra
 </main>
 
 <script>
+/* ==CORE:START== */
+/* =====================================================================
+   Bell Clock core — the ONE copy of the scheduling rules.
+   Pure functions only: no DOM, no chrome.*, no fetch. Everything else
+   (extension, web clock, editor, CI validator) builds on this file so the
+   four can never disagree about what period it is.
+   Edit this file, then run `node scripts/build.mjs`.
+   ===================================================================== */
+
+const SCHEMA_VERSION = 1;
+const TRACK_LETTERS = ['A', 'B', 'C'];
+const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+const WEEKDAY_BY_INDEX = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const DAY_MS = 86400000;
+
+// Periods matching this show gray rather than counting down in color.
+const UNTIMED = /break|passing/i;
+
+/* ---------------- time ---------------- */
+function toSec(hhmm) {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm || '');
+  if (!m) return null;
+  const h = +m[1], mi = +m[2];
+  return (h > 23 || mi > 59) ? null : h * 3600 + mi * 60;
+}
+function toHHMM(minutes) {
+  return String(Math.floor(minutes / 60)).padStart(2, '0') + ':' + String(minutes % 60).padStart(2, '0');
+}
+function labelTime(sec) {
+  const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60);
+  return (h % 12 || 12) + ':' + String(m).padStart(2, '0') + ' ' + (h >= 12 ? 'PM' : 'AM');
+}
+function rangeLabel(a, b) {
+  const A = labelTime(a), B = labelTime(b);
+  return A.slice(-2) === B.slice(-2) ? A.slice(0, -3) + ' \u2013 ' + B : A + ' \u2013 ' + B;
+}
+function ordinal(n) {
+  return n + (n % 100 >= 11 && n % 100 <= 13 ? 'th' : ({ 1: 'st', 2: 'nd', 3: 'rd' }[n % 10] || 'th'));
+}
+function minutesLabel(sec) {
+  const m = Math.max(0, Math.ceil(sec / 60));
+  if (m >= 60) return { v: Math.floor(m / 60) + ':' + String(m % 60).padStart(2, '0'), u: 'hr' };
+  return { v: String(m), u: 'min' };
+}
+
+/* ---------------- dates ---------------- */
+function parseISO(s) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || '');
+  return m ? Date.UTC(+m[1], +m[2] - 1, +m[3]) : null;
+}
+function isoOf(ms) {
+  const d = new Date(ms);
+  return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0') + '-' + String(d.getUTCDate()).padStart(2, '0');
+}
+function weekdayOf(iso) {
+  const ms = parseISO(iso);
+  return ms === null ? null : WEEKDAY_BY_INDEX[new Date(ms).getUTCDay()];
+}
+
+/* ---------------- schools ---------------- */
+function availableTracks(school) {
+  const seen = new Set();
+  for (const t of Object.values((school || {}).templates || {}))
+    for (const p of t.periods || []) if (p.track && p.track !== 'both') seen.add(p.track);
+  return TRACK_LETTERS.filter(x => seen.has(x));
+}
+
+function hasNoClasses(school, templateId) {
+  const t = (school.templates || {})[templateId];
+  return !t || !(t.periods || []).length;
+}
+
+/**
+ * Which cycle day falls on `iso`. The cycle advances on school days only, so
+ * weekends and any date assigned a no-class template are stepped over.
+ */
+function cycleDayFor(school, iso) {
+  const rot = school && school.rotation;
+  if (!rot || !rot.start || !Array.isArray(rot.days) || !rot.days.length) return null;
+  const start = parseISO(rot.start), target = parseISO(iso);
+  if (start === null || target === null || target < start) return null;
+  if ((target - start) / DAY_MS > 400) return null;      // stale start date
+
+  let count = 0;
+  for (let t = start; t <= target; t += DAY_MS) {
+    const wd = new Date(t).getUTCDay();
+    const override = (school.dates || {})[isoOf(t)];
+    const skip = (wd === 0 || wd === 6) ? !override : (override && hasNoClasses(school, override));
+    if (skip) continue;
+    if (t === target) return rot.days[count % rot.days.length];
+    count++;
+  }
+  return null;
+}
+
+/** Which template a given date resolves to, and why. */
+function resolveDay(school, iso) {
+  const weekday = weekdayOf(iso);
+  const overrideId = (school.dates || {})[iso];
+  const cycleDay = overrideId ? null : cycleDayFor(school, iso);
+  const templateId = overrideId
+    || (cycleDay ? ((school.rotation.map || {})[cycleDay]) : null)
+    || (cycleDay ? null : (school.week || {})[weekday]);
+  return {
+    weekday,
+    isWeekend: weekday === 'Saturday' || weekday === 'Sunday',
+    overrideId, cycleDay, templateId,
+    template: templateId ? (school.templates || {})[templateId] : null
+  };
+}
+
+/** The rows a student on `track` should see on `iso`, sorted and sanitized. */
+function periodsFor(school, iso, track) {
+  const { template } = resolveDay(school, iso);
+  return ((template && template.periods) || [])
+    .filter(r => r.track === 'both' || (track && r.track === track))
+    .map(r => ({ name: r.name, start: toSec(r.start), end: toSec(r.end) }))
+    .filter(r => r.start !== null && r.end !== null && r.end > r.start)
+    .sort((a, b) => a.start - b.start);
+}
+
+/* ---------------- the one place that decides what is displayed ---------------- */
+function snapshot(data, schoolId, mode, now = new Date()) {
+  const school = data && data.schools ? data.schools[schoolId] : null;
+  if (!school) return { missingSchool: true };
+
+  const zone = school.timezone || 'America/Chicago';
+  const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
+    timeZone: zone, weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23'
+  }).formatToParts(now).map(x => [x.type, x.value]));
+  // en-CA renders YYYY-MM-DD, matching the keys the editor writes.
+  const iso = new Intl.DateTimeFormat('en-CA', {
+    timeZone: zone, year: 'numeric', month: '2-digit', day: '2-digit'
+  }).format(now);
+
+  const day = resolveDay(school, iso);
+  const tracks = availableTracks(school);
+  const activeTrack = tracks.length ? (tracks.includes(mode) ? mode : tracks[0]) : null;
+  const rows = periodsFor(school, iso, activeTrack);
+
+  const secs = Number(parts.hour) * 3600 + Number(parts.minute) * 60 + Number(parts.second);
+  const current = rows.find(r => secs >= r.start && secs < r.end);
+  const next = rows.find(r => r.start > secs);
+
+  let state = 'gray', period, remaining, count, up, left = null;
+  if (current) {
+    left = current.end - secs;
+    state = UNTIMED.test(current.name) ? 'gray' : left <= 300 ? 'red' : left <= 600 ? 'yellow' : 'green';
+    period = current.name;
+    count = minutesLabel(left);
+    remaining = 'TIME REMAINING';
+    up = next ? `Up next \u00b7 ${next.name} at ${labelTime(next.start)}` : 'Last period of the day';
+  } else if (next) {
+    left = next.start - secs;
+    period = secs < rows[0].start ? 'Before school' : 'Passing time';
+    count = minutesLabel(left);
+    remaining = 'UNTIL ' + next.name.toUpperCase();
+    up = `${next.name} starts at ${labelTime(next.start)}`;
+  } else {
+    period = rows.length ? 'School day complete' : 'No school scheduled';
+    count = { v: '\u2014', u: '' };
+    remaining = rows.length ? 'SEE YOU NEXT SCHOOL DAY' : 'NO CLASSES TODAY';
+    up = '';
+  }
+
+  let announcement = null;
+  const a = school.announcement;
+  if (a && a.text && (!a.until || a.until >= iso)) announcement = a.text;
+
+  return {
+    schoolName: school.name, zone, parts, iso, secs, rows, current, next,
+    state, period, count, remaining, up, left,
+    tracks, activeTrack, cycleDay: day.cycleDay, announcement,
+    templateLabel: day.template ? day.template.label : null,
+    isOverride: Boolean(day.overrideId),
+    missingSchool: false
+  };
+}
+
+/* ---------------- validation ----------------
+   Used by the editor, and by CI on every commit, so a broken file cannot
+   reach students even if someone edits the JSON by hand. */
+function validate(d) {
+  const errs = [], warns = [];
+  if (!d || typeof d !== 'object') return { errs: ['File is not a JSON object.'], warns };
+  if (d.version && d.version > SCHEMA_VERSION)
+    warns.push(`File says version ${d.version}; this code understands ${SCHEMA_VERSION}. Older apps may not read it correctly.`);
+  if (!d.schools || typeof d.schools !== 'object') return { errs: ['No "schools" object.'], warns };
+
+  const entries = Object.entries(d.schools);
+  if (!entries.length) errs.push('No schools defined.');
+
+  for (const [sid, s] of entries) {
+    const who = (s && s.name) || sid;
+    if (!s || typeof s !== 'object') { errs.push(`School "${sid}" is not an object.`); continue; }
+    if (!s.name || !String(s.name).trim()) errs.push(`School "${sid}" has no name.`);
+    if (s.timezone) { try { new Intl.DateTimeFormat('en-US', { timeZone: s.timezone }); }
+      catch (e) { errs.push(`${who}: "${s.timezone}" is not a valid time zone.`); } }
+
+    const tpls = Object.entries(s.templates || {});
+    if (!tpls.length) warns.push(`${who}: no templates.`);
+
+    for (const [tid, t] of tpls) {
+      const label = (t && t.label) || tid;
+      const rows = (t && t.periods) || [];
+      if (!rows.length) { warns.push(`${who}: "${label}" has no periods — it reads as a no-school day.`); continue; }
+      rows.forEach((r, i) => {
+        if (!r.name || !String(r.name).trim()) errs.push(`${who} / ${label}: period ${i + 1} has no name.`);
+        if (r.track && !['both', ...TRACK_LETTERS].includes(r.track))
+          errs.push(`${who} / ${label}: "${r.name}" has unknown track "${r.track}".`);
+        const a = toSec(r.start), b = toSec(r.end);
+        if (a === null || b === null) errs.push(`${who} / ${label}: "${r.name || 'period ' + (i + 1)}" has an invalid time.`);
+        else if (b <= a) errs.push(`${who} / ${label}: "${r.name}" ends before it starts.`);
+      });
+      for (const track of TRACK_LETTERS) {
+        const inTrack = rows
+          .filter(r => r.track === 'both' || r.track === track)
+          .filter(r => toSec(r.start) !== null && toSec(r.end) !== null)
+          .sort((x, y) => toSec(x.start) - toSec(y.start));
+        for (let i = 1; i < inTrack.length; i++) {
+          if (toSec(inTrack[i].start) < toSec(inTrack[i - 1].end))
+            errs.push(`${who} / ${label}: "${inTrack[i - 1].name}" and "${inTrack[i].name}" overlap on track ${track}.`);
+        }
+      }
+    }
+
+    for (const [day, tid] of Object.entries(s.week || {}))
+      if (tid && !(s.templates || {})[tid]) errs.push(`${who}: ${day} points at a missing template.`);
+    for (const [date, tid] of Object.entries(s.dates || {})) {
+      if (parseISO(date) === null) errs.push(`${who}: "${date}" is not a valid date.`);
+      if (!(s.templates || {})[tid]) errs.push(`${who}: ${date} points at a missing template.`);
+    }
+
+    if (s.rotation && s.rotation.start) {
+      if (parseISO(s.rotation.start) === null) errs.push(`${who}: rotation start date is invalid.`);
+      const days = s.rotation.days || [];
+      if (!days.length) errs.push(`${who}: rotation has no days.`);
+      const miss = days.filter(x => !(s.rotation.map || {})[x]);
+      if (miss.length) warns.push(`${who}: no template for ${miss.join(', ')}.`);
+      for (const [dayName, tid] of Object.entries(s.rotation.map || {}))
+        if (!(s.templates || {})[tid]) errs.push(`${who}: ${dayName} points at a missing template.`);
+    } else {
+      const unmapped = WEEKDAYS.filter(x => !(s.week || {})[x]);
+      if (unmapped.length) warns.push(`${who}: no normal template for ${unmapped.join(', ')}.`);
+    }
+
+    if (s.announcement && s.announcement.until && parseISO(s.announcement.until) === null)
+      errs.push(`${who}: announcement "hide after" date is invalid.`);
+  }
+  return { errs, warns };
+}
+
+/** Cheap shape check used before trusting a freshly fetched file. */
+function looksValid(d) {
+  if (!d || typeof d !== 'object' || !d.schools || typeof d.schools !== 'object') return false;
+  const ids = Object.keys(d.schools);
+  return ids.length > 0 && ids.every(id => {
+    const s = d.schools[id];
+    return s && typeof s.name === 'string' && s.templates && typeof s.templates === 'object';
+  });
+}
+
+/* ==CORE:END== */
+
 /* ===================== state ===================== */
 const TZS=['America/Chicago','America/New_York','America/Denver','America/Los_Angeles','America/Phoenix','America/Anchorage','Pacific/Honolulu'];
-const DOW=['Monday','Tuesday','Wednesday','Thursday','Friday'];
+const DOW=WEEKDAYS;
 const MONTH_NAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const LS='bellEditor';
+const LS_DATA='bellEditorDraft';
 
 let data=blank();
 let curSchool=null, curTpl=null, paint=null, lastClicked=null, dirty=false;
-let gh={owner:'',repo:'',branch:'main',path:'overrides.json',token:''};
+let gh={owner:'',repo:'',branch:'main',path:'overrides.json',draft:'overrides-draft.json',token:''};
 
 function blank(){return {version:1,updated:todayISO(),schools:{}}}
 function todayISO(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function slug(s){return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)||'item'}
 function uniqueKey(obj,base){let k=base,i=2;while(obj[k])k=base+'-'+(i++);return k}
 function $(id){return document.getElementById(id)}
-function mark(){dirty=true;$('dirty').hidden=false}
+function mark(){dirty=true;$('dirty').hidden=false;saveLocal()}
+
+/* Keep a working copy in this browser so closing the tab never loses work.
+   This is a draft only - it is not what students read. Publishing to GitHub
+   is still what makes a change go live. */
+let saveTimer=null;
+function saveLocal(){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{
+    try{localStorage.setItem(LS_DATA,JSON.stringify({data,curSchool,savedAt:new Date().toISOString()}))}catch(e){}
+  },400);
+}
+function restoreLocal(){
+  try{
+    const raw=localStorage.getItem(LS_DATA);if(!raw)return null;
+    const j=JSON.parse(raw);
+    if(!j||!j.data||!j.data.schools||!Object.keys(j.data.schools).length)return null;
+    return j;
+  }catch(e){return null}
+}
+function clearLocal(){try{localStorage.removeItem(LS_DATA)}catch(e){}}
 
 /* deterministic color per template id */
 function hue(id){let h=0;for(const c of id)h=(h*31+c.charCodeAt(0))%360;return h}
 function tplColor(id){return `hsl(${hue(id)} 62% 76%)`}
 
 /* ===================== time helpers ===================== */
-function toMin(t){const m=/^(\d{1,2}):(\d{2})$/.exec(t||'');return m?(+m[1])*60+(+m[2]):null}
-function fmt(t){const v=toMin(t);if(v===null)return '—';const h=Math.floor(v/60),mi=v%60;return (h%12||12)+':'+String(mi).padStart(2,'0')+' '+(h>=12?'PM':'AM')}
-
-/* ===================== validation ===================== */
-function validate(d){
-  const errs=[],warns=[];
-  const schools=Object.entries(d.schools);
-  if(!schools.length)errs.push('No schools defined yet.');
-  for(const [sid,s] of schools){
-    if(!s.name||!s.name.trim())errs.push(`School "${sid}" has no name.`);
-    const tpls=Object.entries(s.templates||{});
-    if(!tpls.length)warns.push(`${s.name||sid}: no templates yet.`);
-    for(const [tid,t] of tpls){
-      const label=t.label||tid;
-      const rows=t.periods||[];
-      if(!rows.length){warns.push(`${s.name}: "${label}" has no periods — it will show as a no-school day.`);continue}
-      rows.forEach((r,i)=>{
-        if(!r.name||!r.name.trim())errs.push(`${s.name} / ${label}: period ${i+1} has no name.`);
-        const a=toMin(r.start),b=toMin(r.end);
-        if(a===null||b===null)errs.push(`${s.name} / ${label}: "${r.name||'period '+(i+1)}" has an invalid time.`);
-        else if(b<=a)errs.push(`${s.name} / ${label}: "${r.name}" ends before it starts.`);
-      });
-      for(const track of ['A','B']){
-        const inTrack=rows.filter(r=>r.track==='both'||r.track===track)
-          .filter(r=>toMin(r.start)!==null&&toMin(r.end)!==null)
-          .sort((x,y)=>toMin(x.start)-toMin(y.start));
-        for(let i=1;i<inTrack.length;i++){
-          const prev=inTrack[i-1],cur=inTrack[i];
-          if(toMin(cur.start)<toMin(prev.end))
-            errs.push(`${s.name} / ${label}: "${prev.name}" and "${cur.name}" overlap on the ${track} track.`);
-        }
-      }
-    }
-    for(const [day,tid] of Object.entries(s.week||{}))
-      if(tid&&!(s.templates||{})[tid])errs.push(`${s.name}: ${day} points at a template that no longer exists.`);
-    for(const [date,tid] of Object.entries(s.dates||{}))
-      if(!(s.templates||{})[tid])errs.push(`${s.name}: ${date} points at a template that no longer exists.`);
-    const unmapped=DOW.filter(x=>!(s.week||{})[x]);
-    if(unmapped.length)warns.push(`${s.name}: no normal template set for ${unmapped.join(', ')}.`);
-  }
-  return {errs,warns};
-}
+const toMin=t=>{const s=toSec(t);return s===null?null:s/60};
+const fmt=t=>{const s=toSec(t);return s===null?'—':labelTime(s)};
 
 /* ===================== rendering ===================== */
 function renderSchools(){
@@ -352,6 +704,27 @@ function renderSchools(){
   $('s-name').value=s.name||'';
   $('s-id').value=curSchool;
   $('s-tz').innerHTML=TZS.map(t=>`<option${t===s.timezone?' selected':''}>${t}</option>`).join('');
+  $('s-ann').value=(s.announcement&&s.announcement.text)||'';
+  $('s-annuntil').value=(s.announcement&&s.announcement.until)||'';
+
+  const usingRotation=Boolean(s.rotation&&s.rotation.start);
+  $('s-mode').value=usingRotation?'rotation':'week';
+  $('weekbox').hidden=usingRotation;
+  $('rotbox').hidden=!usingRotation;
+  if(usingRotation){
+    $('r-start').value=s.rotation.start||'';
+    $('r-count').value=String((s.rotation.days||[]).length||6);
+    const rm=$('rotmap');rm.innerHTML='';
+    (s.rotation.days||[]).forEach(dayName=>{
+      const lab=document.createElement('label');lab.className='field';lab.textContent=dayName;
+      const sel=document.createElement('select');
+      sel.innerHTML='<option value="">— none —</option>'+Object.entries(s.templates||{})
+        .map(([tid,t])=>`<option value="${tid}"${(s.rotation.map||{})[dayName]===tid?' selected':''}>${t.label||tid}</option>`).join('');
+      sel.onchange=()=>{s.rotation.map=s.rotation.map||{};if(sel.value)s.rotation.map[dayName]=sel.value;else delete s.rotation.map[dayName];mark();renderPublish()};
+      lab.appendChild(sel);rm.appendChild(lab);
+    });
+  }
+
   const wm=$('weekmap');wm.innerHTML='';
   DOW.forEach(day=>{
     const lab=document.createElement('label');lab.className='field';lab.textContent=day;
@@ -397,10 +770,18 @@ function renderTemplates(){
         <option value="both"${r.track==='both'?' selected':''}>Both</option>
         <option value="A"${r.track==='A'?' selected':''}>A only</option>
         <option value="B"${r.track==='B'?' selected':''}>B only</option>
+        <option value="C"${r.track==='C'?' selected':''}>C only</option>
       </select></td>
       <td class="x"><button class="btn sm danger" title="Remove">×</button></td>`;
     tr.querySelectorAll('[data-k]').forEach(inp=>{
-      inp.oninput=()=>{t.periods[i][inp.dataset.k]=inp.value;mark();renderTplMsgs();renderPublish()};
+      const k=inp.dataset.k, isTime=inp.type==='time';
+      inp.oninput=()=>{
+        if(isTime&&!inp.value)return;          // half-typed: leave the stored value alone
+        t.periods[i][k]=inp.value;mark();renderTplMsgs();renderPublish();
+      };
+      inp.onblur=()=>{
+        if(isTime&&!inp.value)inp.value=t.periods[i][k]||'';   // restore what was there
+      };
     });
     tr.querySelector('button').onclick=()=>{t.periods.splice(i,1);mark();renderTemplates();renderPublish()};
     tb.appendChild(tr);
@@ -499,10 +880,125 @@ function renderPublish(){
   $('val-msgs').innerHTML=[...errs.map(e=>`<div class="msg err">${e}</div>`),...warns.map(w=>`<div class="msg warn">${w}</div>`)].join('')
     ||'<div class="msg ok">Everything checks out. Safe to publish.</div>';
   $('btn-push').disabled=errs.length>0||!gh.token;
+  $('btn-publish').disabled=errs.length>0||!gh.token;
   $('preview').textContent=JSON.stringify(serialize(),null,2);
 }
 
 function renderAll(){renderSchools();renderTemplates();renderCalendar();renderPublish()}
+
+/* ===================== preview ===================== */
+function renderPreview(){
+  const out=$('pv-out');
+  if(!curSchool){out.innerHTML='<div class="empty">Pick a school first.</div>';return}
+  const s=data.schools[curSchool];
+  if(!$('pv-date').value)$('pv-date').value=todayISO();
+  const tracks=availableTracks(s);
+  const sel=$('pv-track');
+  const keep=sel.value;
+  sel.innerHTML=tracks.length?tracks.map(t=>`<option${t===keep?' selected':''}>${t}</option>`).join('')
+    :'<option value="">No split lunch</option>';
+  sel.disabled=!tracks.length;
+
+  const iso=$('pv-date').value;
+  const r=resolveDay(s,iso);
+  const mode=tracks.length?(sel.value||tracks[0]):null;
+
+  const bits=[];
+  bits.push(`<div class="msg ${r.template&&(r.template.periods||[]).length?'ok':'warn'}">
+    <b>${r.weekday}, ${iso}</b> — ${r.template?(r.template.label||r.templateId):'no schedule assigned'}
+    ${r.overrideId?' · special day from the calendar':r.cycleDay?' · '+r.cycleDay:r.isWeekend?' · weekend':' · normal week'}</div>`);
+
+  if(s.announcement&&s.announcement.text){
+    const live=!s.announcement.until||s.announcement.until>=iso;
+    bits.push(`<div class="msg ${live?'warn':''}" ${live?'':'style="opacity:.55"'}>Announcement${live?'':' (expired by this date)'}: ${s.announcement.text}</div>`);
+  }
+
+  const rows=((r.template&&r.template.periods)||[])
+    .filter(p=>p.track==='both'||(mode&&p.track===mode))
+    .slice().sort((a,b)=>toMin(a.start)-toMin(b.start));
+
+  if(!rows.length)bits.push('<p class="hint">No periods — students will see "No school scheduled".</p>');
+  else{
+    bits.push('<table class="periods"><thead><tr><th>Period</th><th style="width:190px">Time</th><th style="width:90px">Length</th></tr></thead><tbody>'+
+      rows.map(p=>{
+        const len=(toMin(p.end)-toMin(p.start));
+        return `<tr><td>${p.name}</td><td>${fmt(p.start)} – ${fmt(p.end)}</td><td>${len} min</td></tr>`;
+      }).join('')+'</tbody></table>');
+    const first=toMin(rows[0].start),last=toMin(rows[rows.length-1].end);
+    bits.push(`<p class="hint" style="margin-top:10px">${rows.length} periods · ${fmt(rows[0].start)} to ${fmt(rows[rows.length-1].end)} · ${Math.round((last-first)/60*10)/10} hours${mode?' · '+mode+' lunch':''}</p>`);
+  }
+  out.innerHTML=bits.join('');
+}
+
+/* ===================== whole-year check ===================== */
+function runYearCheck(){
+  const out=$('yc-out');
+  if(!curSchool){out.innerHTML='<div class="empty">Pick a school first.</div>';return}
+  const s=data.schools[curSchool];
+  const from=parseISO($('yc-from').value),to=parseISO($('yc-to').value);
+  if(from===null||to===null||to<from){out.innerHTML='<div class="msg err">Pick a valid date range.</div>';return}
+  if((to-from)/DAY_MS>400){out.innerHTML='<div class="msg err">That range is longer than a school year.</div>';return}
+
+  const noTemplate=[],emptyWeekday=[],classesOnWeekend=[],rotGap=[];
+  let schoolDays=0,offDays=0;
+  for(let t=from;t<=to;t+=DAY_MS){
+    const iso=isoOf(t),r=resolveDay(s,iso);
+    const has=r.template&&(r.template.periods||[]).length;
+    if(r.isWeekend){ if(has)classesOnWeekend.push(iso); continue }
+    if(!r.templateId){ (r.cycleDay?rotGap:noTemplate).push(iso+(r.cycleDay?' ('+r.cycleDay+')':'')); continue }
+    if(!has){offDays++;emptyWeekday.push(iso)}else schoolDays++;
+  }
+
+  const block=(title,list,kind,note)=>{
+    if(!list.length)return '';
+    const shown=list.slice(0,12).join(', ')+(list.length>12?` … and ${list.length-12} more`:'');
+    return `<div class="msg ${kind}"><b>${title} (${list.length})</b><br>${shown}${note?'<br><span style="opacity:.8">'+note+'</span>':''}</div>`;
+  };
+
+  out.innerHTML =
+    `<div class="msg ok"><b>${schoolDays} school days</b> with a full schedule, ${offDays} weekdays off.</div>` +
+    block('Weekdays with no schedule at all',noTemplate,'err','These fall back to nothing — students see "No school scheduled".') +
+    block('Rotation days with no template',rotGap,'err','Assign a template to each cycle day on the Schools tab.') +
+    block('Weekdays marked as no school',emptyWeekday,'warn','Expected for holidays and breaks — worth a glance.') +
+    block('Weekend days with classes',classesOnWeekend,'warn','Intentional for a Saturday exam, otherwise a mis-click.') +
+    (noTemplate.length||rotGap.length?'':'<div class="msg ok">Every weekday in range resolves to a schedule.</div>');
+}
+
+/* ===================== generator ===================== */
+
+
+const ord=ordinal;
+
+function generatePeriods(o){
+  const rows=[]; let t=toMin(o.start); let n=1;
+  const push=(name,start,end,track='both')=>rows.push({name,start:toHHMM(start),end:toHHMM(end),track});
+  let guard=0;
+  while(n<=o.count&&guard++<60){
+    // split lunch: one shared block, each track eating at a different point in it
+    if(o.lunchAfter&&n===o.lunchAfter+1&&o.lunchTracks>1){
+      const T=o.lunchTracks,L=o.lunchLen,blockLen=o.classLen+o.passLen+L;
+      const span=(blockLen-L)/(T-1);
+      for(let k=0;k<T;k++){
+        const tag=TRACK_LETTERS[k], ls=t+Math.round(k*span), le=ls+L;
+        push('Lunch '+tag,ls,le,tag);
+        const chunks=[[t,ls],[le,t+blockLen]].filter(([a,b])=>b-a>=10);
+        chunks.forEach(([a,b],i)=>push(
+          ord(n)+' Period'+(chunks.length>1?' (part '+(i+1)+')':'')+' \u00b7 '+tag,
+          a===t?a:a+o.passLen, b, tag));
+      }
+      t+=blockLen+o.passLen; n++; continue;
+    }
+    if(o.lunchAfter&&n===o.lunchAfter+1&&o.lunchTracks===1){
+      push('Lunch',t,t+o.lunchLen); t+=o.lunchLen+o.passLen;
+    }
+    push(ord(n)+' Period',t,t+o.classLen); t+=o.classLen+o.passLen;
+    if(o.breakAfter&&n===o.breakAfter&&o.breakLen>0){
+      const bs=t-o.passLen; push('Break',bs,bs+o.breakLen); t=bs+o.breakLen+o.passLen;
+    }
+    n++;
+  }
+  return rows;
+}
 
 /* ===================== serialize ===================== */
 function serialize(){
@@ -516,6 +1012,8 @@ function serialize(){
     });
     const dates={};Object.keys(s.dates||{}).sort().forEach(d=>dates[d]=s.dates[d]);
     out.schools[sid]={name:s.name,timezone:s.timezone||'America/Chicago',week:s.week||{},templates:tpls,dates};
+    if(s.rotation&&s.rotation.start)out.schools[sid].rotation={start:s.rotation.start,days:s.rotation.days||[],map:s.rotation.map||{}};
+    if(s.announcement&&s.announcement.text)out.schools[sid].announcement=s.announcement;
   });
   return out;
 }
@@ -529,12 +1027,32 @@ function api(path,opts={}){
     ...opts, headers:{Accept:'application/vnd.github+json',Authorization:'Bearer '+gh.token,'X-GitHub-Api-Version':'2022-11-28',...(opts.headers||{})}
   });
 }
+async function readFile(path){
+  const r=await api(`${path}?ref=${encodeURIComponent(gh.branch)}`);
+  if(r.status===404)return null;
+  if(!r.ok)throw new Error(`GitHub said ${r.status}${r.status===401?' — token wrong or expired':''}`);
+  const j=await r.json();
+  return {sha:j.sha,text:unb64(j.content)};
+}
+async function writeFile(path,text,message){
+  let sha=null;
+  const head=await api(`${path}?ref=${encodeURIComponent(gh.branch)}`);
+  if(head.ok)sha=(await head.json()).sha;
+  const r=await api(path,{method:'PUT',body:JSON.stringify({
+    message,content:b64(text),branch:gh.branch,...(sha?{sha}:{})})});
+  if(!r.ok){
+    const t=await r.text();
+    throw new Error(`${r.status}${r.status===401?' — token wrong or expired':r.status===403?' — token lacks Contents: Read and write':': '+t.slice(0,110)}`);
+  }
+  return r.json();
+}
+
 async function pull(){
   if(PREVIEW_HOST)return status('GitHub sync is blocked in the chat preview. Host this file on your Pages site and use it there.',true);
   if(!gh.token||!gh.owner||!gh.repo)return status('Fill in the GitHub connection first.',true);
   try{
-    const r=await api(`${gh.path}?ref=${encodeURIComponent(gh.branch)}`);
-    if(r.status===404)return status('No file there yet — saving will create it.',false);
+    const r=await api(`${gh.draft}?ref=${encodeURIComponent(gh.branch)}`);
+    if(r.status===404)return status('No draft yet — Save draft will create one.',false);
     if(!r.ok)return status(`GitHub said ${r.status}. ${r.status===401?'Token is wrong or expired.':''}`,true);
     const j=await r.json();
     const parsed=JSON.parse(unb64(j.content));
@@ -544,32 +1062,91 @@ async function pull(){
     status('Loaded from GitHub.',false);
   }catch(e){status('Could not load: '+e.message,true)}
 }
+// Saving writes the DRAFT. Students never read this file.
 async function push(){
   if(PREVIEW_HOST)return status('GitHub sync is blocked in the chat preview. Use Download JSON here, or host this editor on your Pages site.',true);
-  const {errs}=validate(data);
+  const {errs}=validate(serialize());
   if(errs.length)return status('Fix the validation errors first.',true);
   try{
-    let sha=null;
-    const head=await api(`${gh.path}?ref=${encodeURIComponent(gh.branch)}`);
-    if(head.ok)sha=(await head.json()).sha;
-    const r=await api(gh.path,{method:'PUT',body:JSON.stringify({
-      message:`Update bell schedules (${todayISO()})`,
-      content:b64(JSON.stringify(serialize(),null,2)),
-      branch:gh.branch,...(sha?{sha}:{})
-    })});
-    if(!r.ok){const t=await r.text();return status(`Save failed (${r.status}). ${r.status===401?'Token wrong or expired.':r.status===403?'Token lacks Contents: Read and write.':t.slice(0,120)}`,true)}
-    dirty=false;$('dirty').hidden=true;
-    status('Saved. Students see it within the hour.',false);
+    await writeFile(gh.draft,JSON.stringify(serialize(),null,2),`Update draft (${todayISO()})`);
+    dirty=false;$('dirty').hidden=true;saveLocal();
+    status('Draft saved. Students still see the last published version.',false);
   }catch(e){status('Save failed: '+e.message,true)}
 }
+
+// Publishing copies the current editor state onto the live file.
+async function publish(){
+  if(PREVIEW_HOST)return status('Publishing is blocked in the chat preview. Run this editor from your Pages site.',true);
+  const text=JSON.stringify(serialize(),null,2);
+  const {errs,warns}=validate(serialize());
+  if(errs.length)return status('Fix the validation errors before publishing.',true);
+  const schools=Object.keys(serialize().schools).length;
+  if(!confirm(`Publish to students now?\n\n${schools} school(s)${warns.length?`\n${warns.length} warning(s) — these do not block publishing.`:''}\n\nEveryone's extension picks this up within the hour.`))return;
+  try{
+    await writeFile(gh.path,text,`Publish bell schedules (${todayISO()})`);
+    await writeFile(gh.draft,text,`Sync draft with published (${todayISO()})`).catch(()=>{});
+    dirty=false;$('dirty').hidden=true;saveLocal();
+    status('Published. Students see it within the hour.',false);
+  }catch(e){status('Publish failed: '+e.message,true)}
+}
+
+/* ---------- version history ---------- */
+async function loadHistory(){
+  const out=$('h-out');
+  if(PREVIEW_HOST)return out.innerHTML='<div class="msg warn">History needs GitHub access, which the chat preview blocks.</div>';
+  if(!gh.token||!gh.owner||!gh.repo)return out.innerHTML='<div class="msg warn">Fill in the GitHub connection first.</div>';
+  out.innerHTML='<p class="hint">Loading…</p>';
+  try{
+    const r=await fetch(`https://api.github.com/repos/${gh.owner}/${gh.repo}/commits?path=${encodeURIComponent(gh.path)}&sha=${encodeURIComponent(gh.branch)}&per_page=15`,
+      {headers:{Accept:'application/vnd.github+json',Authorization:'Bearer '+gh.token,'X-GitHub-Api-Version':'2022-11-28'}});
+    if(!r.ok)throw new Error('GitHub said '+r.status);
+    const commits=await r.json();
+    if(!commits.length)return out.innerHTML='<p class="hint">No published versions yet.</p>';
+    out.innerHTML='';
+    commits.forEach(c=>{
+      const when=new Date(c.commit.author.date);
+      const el=document.createElement('div');el.className='item';
+      el.innerHTML=`<span class="nm">${when.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})} at ${when.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'})}</span>
+        <span class="meta">${(c.commit.message||'').slice(0,46)}</span>`;
+      const b=document.createElement('button');b.className='btn sm';b.textContent='Restore';
+      b.onclick=()=>restore(c.sha,when);
+      el.appendChild(b);out.appendChild(el);
+    });
+  }catch(e){out.innerHTML=`<div class="msg err">Could not load history: ${e.message}</div>`}
+}
+
+async function restore(sha,when){
+  if(!confirm(`Restore the version from ${when.toLocaleString()}?\n\nIt is republished as a new version, so nothing in the history is lost.`))return;
+  status('Restoring…',false);
+  try{
+    const r=await api(`${gh.path}?ref=${sha}`);
+    if(!r.ok)throw new Error('GitHub said '+r.status);
+    const text=unb64((await r.json()).content);
+    const parsed=JSON.parse(text);
+    const {errs}=validate(parsed);
+    if(errs.length)throw new Error('that version fails validation: '+errs[0]);
+    await writeFile(gh.path,text,`Restore schedules from ${when.toISOString().slice(0,10)}`);
+    data=parsed;curSchool=Object.keys(data.schools)[0]||null;curTpl=null;
+    dirty=false;$('dirty').hidden=true;saveLocal();renderAll();
+    status('Restored and published.',false);
+    loadHistory();
+  }catch(e){status('Restore failed: '+e.message,true)}
+}
 function status(msg,bad){const el=$('g-status');el.textContent=msg;el.style.color=bad?'var(--err)':'var(--ok)'}
+function note(html,id){
+  const b=$('banner');b.hidden=false;
+  const d=document.createElement('div');d.dataset.note=id;d.innerHTML=html;
+  d.style.marginBottom='4px';
+  b.appendChild(d);
+}
 
 /* ===================== wiring ===================== */
 document.querySelectorAll('nav.tabs button').forEach(b=>{
   b.onclick=()=>{
     document.querySelectorAll('nav.tabs button').forEach(x=>x===b?x.setAttribute('aria-current','page'):x.removeAttribute('aria-current'));
-    ['schools','templates','calendar','publish','setup'].forEach(t=>$('tab-'+t).hidden=(t!==b.dataset.tab));
+    ['schools','templates','calendar','preview','publish','setup'].forEach(t=>$('tab-'+t).hidden=(t!==b.dataset.tab));
     if(b.dataset.tab==='publish')renderPublish();
+    if(b.dataset.tab==='preview')renderPreview();
   };
 });
 
@@ -581,6 +1158,32 @@ $('add-school').onclick=()=>{
 };
 $('s-name').oninput=e=>{if(curSchool){data.schools[curSchool].name=e.target.value;mark();renderSchools();renderPublish()}};
 $('s-tz').onchange=e=>{if(curSchool){data.schools[curSchool].timezone=e.target.value;mark();renderPublish()}};
+
+function syncRotationDays(){
+  const s=data.schools[curSchool];if(!s.rotation)return;
+  const n=Number($('r-count').value)||6;
+  s.rotation.days=Array.from({length:n},(_,i)=>'Day '+(i+1));
+  Object.keys(s.rotation.map||{}).forEach(k=>{if(!s.rotation.days.includes(k))delete s.rotation.map[k]});
+}
+function setAnnouncement(){
+  const s=data.schools[curSchool];if(!s)return;
+  const text=$('s-ann').value.trim(), until=$('s-annuntil').value;
+  if(text)s.announcement={text,...(until?{until}:{})};
+  else delete s.announcement;
+  mark();renderPublish();
+}
+$('s-ann').oninput=setAnnouncement;
+$('s-annuntil').onchange=setAnnouncement;
+
+$('s-mode').onchange=e=>{
+  const s=data.schools[curSchool];if(!s)return;
+  if(e.target.value==='rotation'){
+    s.rotation=s.rotation||{start:'',days:Array.from({length:6},(_,i)=>'Day '+(i+1)),map:{}};
+  }else delete s.rotation;
+  mark();renderSchools();renderPublish();
+};
+$('r-start').onchange=e=>{const s=data.schools[curSchool];if(!s||!s.rotation)return;s.rotation.start=e.target.value;mark();renderPublish()};
+$('r-count').onchange=()=>{syncRotationDays();mark();renderSchools();renderPublish()};
 
 $('add-tpl').onclick=()=>{
   if(!curSchool)return alert('Add a school first.');
@@ -611,13 +1214,36 @@ $('t-label').oninput=e=>{if(curSchool&&curTpl){data.schools[curSchool].templates
 $('add-row').onclick=()=>{
   const t=data.schools[curSchool].templates[curTpl];t.periods=t.periods||[];
   const last=t.periods[t.periods.length-1];
-  t.periods.push({name:'',start:last?last.end:'08:15',end:'',track:'both'});
+  t.periods.push({name:'',start:last&&last.end?last.end:'08:00',end:'',track:'both'});
   mark();renderTemplates();
 };
 $('sort-rows').onclick=()=>{
   const t=data.schools[curSchool].templates[curTpl];
   t.periods.sort((a,b)=>(toMin(a.start)??0)-(toMin(b.start)??0));mark();renderTemplates();
 };
+
+$('gen-toggle').onclick=()=>{const b=$('gen-box');b.hidden=!b.hidden};
+$('gen-cancel').onclick=()=>{$('gen-box').hidden=true};
+$('gen-run').onclick=()=>{
+  if(!curSchool||!curTpl)return;
+  const t=data.schools[curSchool].templates[curTpl];
+  if((t.periods||[]).length&&!confirm('Replace the '+t.periods.length+' periods already in this template?'))return;
+  const num=id=>Number($(id).value)||0;
+  const rows=generatePeriods({
+    start:$('g-start').value||'08:00', count:num('g-count')||7,
+    classLen:num('g-class')||45, passLen:num('g-pass'),
+    breakAfter:num('g-breakafter'), breakLen:num('g-breaklen'),
+    lunchAfter:num('g-lunchafter'), lunchLen:num('g-lunchlen')||30,
+    lunchTracks:Number($('g-tracks').value)||1
+  });
+  t.periods=rows.sort((a,b)=>toMin(a.start)-toMin(b.start));
+  $('gen-box').hidden=true;mark();renderTemplates();renderPublish();
+};
+
+$('pv-date').onchange=renderPreview;
+$('pv-track').onchange=renderPreview;
+$('pv-today').onclick=()=>{$('pv-date').value=todayISO();renderPreview()};
+$('yc-run').onclick=runYearCheck;
 
 $('cal-start').onchange=renderCalendar;
 $('cal-count').onchange=renderCalendar;
@@ -626,6 +1252,8 @@ $('btn-download').onclick=()=>{
   const blob=new Blob([JSON.stringify(serialize(),null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='overrides.json';a.click();
   URL.revokeObjectURL(a.href);
+  saveLocal();
+  status('Downloaded overrides.json \u2014 now upload it to your repo with Add file \u2192 Upload files.',false);
 };
 $('btn-import').onclick=()=>$('file').click();
 $('file').onchange=e=>{
@@ -640,8 +1268,12 @@ $('file').onchange=e=>{
 };
 $('btn-pull').onclick=pull;
 $('btn-push').onclick=push;
+$('btn-publish').onclick=publish;
+$('h-load').onclick=loadHistory;
 $('g-save').onclick=()=>{
-  gh={owner:$('g-owner').value.trim(),repo:$('g-repo').value.trim(),branch:$('g-branch').value.trim()||'main',path:$('g-path').value.trim()||'overrides.json',token:$('g-token').value.trim()};
+  gh={owner:$('g-owner').value.trim(),repo:$('g-repo').value.trim(),branch:$('g-branch').value.trim()||'main',
+      path:$('g-path').value.trim()||'overrides.json',draft:$('g-draft').value.trim()||'overrides-draft.json',
+      token:$('g-token').value.trim()};
   try{localStorage.setItem(LS,JSON.stringify(gh))}catch(e){}
   status('Connection saved in this browser.',false);renderPublish();
 };
@@ -649,6 +1281,11 @@ $('g-clear').onclick=()=>{
   gh.token='';$('g-token').value='';
   try{localStorage.setItem(LS,JSON.stringify({...gh,token:''}))}catch(e){}
   status('Token forgotten.',false);renderPublish();
+};
+$('d-clear').onclick=()=>{
+  if(!confirm('Discard the draft saved in this browser? Anything not published to GitHub or downloaded is lost.'))return;
+  clearLocal();data=blank();curSchool=null;curTpl=null;dirty=false;$('dirty').hidden=true;renderAll();
+  status('Local draft discarded.',false);
 };
 window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
 
@@ -662,12 +1299,26 @@ window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.return
   const defaultStart=(now.getMonth()>=7?y:y-1)+'-08';
   sel.value=opts.some(o=>o[0]===defaultStart)?defaultStart:opts[0][0];
 
+  const sy=(now.getMonth()>=7?y:y-1);
+  $('yc-from').value=sy+'-08-01';
+  $('yc-to').value=(sy+1)+'-06-30';
+  $('pv-date').value=todayISO();
+
   try{const saved=JSON.parse(localStorage.getItem(LS)||'null');if(saved)gh={...gh,...saved}}catch(e){}
-  $('g-owner').value=gh.owner;$('g-repo').value=gh.repo;$('g-branch').value=gh.branch;$('g-path').value=gh.path;$('g-token').value=gh.token;
+  $('g-owner').value=gh.owner;$('g-repo').value=gh.repo;$('g-branch').value=gh.branch;
+  $('g-path').value=gh.path;$('g-draft').value=gh.draft;$('g-token').value=gh.token;
+
+  const draft=restoreLocal();
+  if(draft){
+    data=draft.data;
+    curSchool=draft.curSchool&&data.schools[draft.curSchool]?draft.curSchool:Object.keys(data.schools)[0]||null;
+    const when=new Date(draft.savedAt);
+    const stamp=when.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' at '+when.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+    note(`Restored your work from ${stamp}. This is a draft saved in this browser only \u2014 publish it to GitHub to make it live for students.`,'restore');
+  }
 
   if(PREVIEW_HOST){
-    const b=$('banner');b.hidden=false;
-    b.innerHTML='<b>Preview mode.</b> Everything works except saving straight to GitHub, which this preview blocks for security. Use <b>Download JSON</b> here, or upload this editor to your Pages site and run it from there. See the Setup tab.';
+    note('<b>Preview mode.</b> Everything works except saving straight to GitHub, which this preview blocks for security. Use <b>Download JSON</b> here, or upload this editor to your Pages site and run it from there. See the Setup tab.','preview');
   }
   renderAll();
 })();

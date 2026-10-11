@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#bce9a5" id="theme-color">
+<meta name="description" content="Current class period and time remaining for your school's bell schedule.">
+<title>Bell Clock</title>
+<style>
+:root{
+  --ink:#162118;
+  --green:#bce9a5; --gray:#d5d8d7; --yellow:#f5d96e; --red:#f3a49b;
+  --line:#16211822; --line2:#16211838; --soft:#16211816; --dim:#16211899; --card:#ffffff8c;
+  --bg:var(--green);
+  font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color:var(--ink); background:var(--bg); color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  transition:background .6s ease;
+}
+@media(prefers-color-scheme:dark){html:not([data-theme=light]){
+  --ink:#e6efe4; --green:#1d3524; --gray:#262b27; --yellow:#473a12; --red:#4a241f;
+  --line:#ffffff1f; --line2:#ffffff33; --soft:#ffffff14; --dim:#e6efe4a8; --card:#ffffff12;
+  color-scheme:dark;
+}}
+html[data-theme=dark]{
+  --ink:#e6efe4; --green:#1d3524; --gray:#262b27; --yellow:#473a12; --red:#4a241f;
+  --line:#ffffff1f; --line2:#ffffff33; --soft:#ffffff14; --dim:#e6efe4a8; --card:#ffffff12;
+  color-scheme:dark;
+}
+:root[data-state=gray]{--bg:var(--gray)}
+:root[data-state=yellow]{--bg:var(--yellow)}
+:root[data-state=red]{--bg:var(--red)}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;min-height:100%;display:flex;flex-direction:column;background:var(--bg);transition:background .6s ease}
+button{font:inherit;color:inherit;cursor:pointer}
+.muted{color:var(--dim);font-size:13.5px;line-height:1.55;margin:0}
+h1{font-size:20px;margin:0 0 8px;letter-spacing:-.01em}
+
+.screen{display:none;flex:1;flex-direction:column}
+body[data-view=loading] #v-loading,
+body[data-view=pick] #v-pick,
+body[data-view=clock] #v-clock{display:flex}
+#v-loading{align-items:center;justify-content:center;gap:14px}
+.spinner{width:24px;height:24px;border:2.5px solid var(--line2);border-top-color:var(--ink);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* picker */
+#v-pick{align-items:center;justify-content:center;padding:28px 20px;text-align:center}
+.schools{display:flex;flex-direction:column;gap:10px;margin-top:20px;width:min(420px,100%)}
+.schools button{text-align:left;background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:15px 17px;font-size:16px;font-weight:600;line-height:1.3}
+.schools button:hover{border-color:var(--ink)}
+.schools .sub{display:block;font-size:12px;font-weight:500;color:var(--dim);margin-top:3px}
+
+/* clock */
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 32px 6px;flex-wrap:wrap}
+.schoolbtn{background:none;border:0;padding:3px 0;font-size:15px;font-weight:700;border-bottom:1px dashed var(--line2);text-align:left}
+.schoolbtn:hover{border-bottom-style:solid}
+.headright{display:flex;align-items:center;gap:10px}
+nav{display:flex;border:1px solid var(--line2);padding:4px;border-radius:50px;gap:3px}
+nav button{background:none;border:0;padding:6px 15px;border-radius:40px;font-size:13px;font-weight:700}
+nav button[aria-current]{background:var(--ink);color:var(--green)}
+nav button:hover{background:var(--soft)}
+nav button[aria-current]:hover{background:var(--ink)}
+.iconbtn{background:none;border:0;padding:6px;opacity:.6;border-radius:7px;line-height:0}
+.iconbtn:hover{opacity:1;background:var(--soft)}
+.date{padding:0 32px;font-size:15px;opacity:.8}
+.notice{margin:12px 32px 0;padding:10px 14px;border-radius:9px;background:var(--soft);font-size:13.5px;font-weight:600;line-height:1.4;display:flex;gap:9px}
+.notice .tag{font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;opacity:.7;white-space:nowrap;padding-top:2px}
+.special{margin:10px 32px 0;padding:7px 13px;border-radius:7px;background:var(--soft);font-size:12px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;display:inline-block}
+
+.stage{flex:1;display:flex;align-items:stretch;min-height:0}
+main{flex:1;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 24px 34px}
+.clock{font-size:clamp(32px,6vw,68px);font-weight:500;letter-spacing:-.04em;font-variant-numeric:tabular-nums;white-space:nowrap;display:flex;align-items:center;gap:.26em;line-height:1.1}
+.clock .ampm{font-size:.26em;font-weight:600;opacity:.8}
+.ring{width:.62em;height:.62em;flex:none;transform:rotate(-90deg);overflow:visible}
+.ring circle{fill:none;stroke-width:7;stroke-linecap:round}
+.ring .trk{stroke:currentColor;opacity:.18}
+.ring .fil{stroke:currentColor}
+.rule{height:1px;background:var(--line2);width:min(560px,78vw);margin:22px 0}
+.status{display:flex;align-items:center;gap:11px;font-size:clamp(19px,2.6vw,30px);font-weight:600}
+.dot{width:10px;height:10px;border-radius:50%;background:currentColor;flex:none}
+.countdown{font-size:clamp(64px,11vw,138px);font-weight:600;letter-spacing:-.04em;line-height:1.15;font-variant-numeric:tabular-nums;margin-top:8px;display:flex;align-items:baseline;gap:.1em}
+.countdown .unit{font-size:.22em;font-weight:700;letter-spacing:.08em;opacity:.72}
+.remaining{font-size:11px;letter-spacing:2.4px;font-weight:700;margin-top:9px;opacity:.85}
+.next{font-size:15px;opacity:.72;margin-top:26px;line-height:1.45}
+
+.agenda{flex:none;width:clamp(260px,24vw,360px);border-left:1px solid var(--line);padding:30px 30px 24px;overflow:auto}
+.agenda h2{font-size:11px;letter-spacing:2.4px;text-transform:uppercase;opacity:.6;margin:0 0 14px}
+.agenda ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.agenda li{display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:8px 10px;border-radius:8px;font-size:clamp(13.5px,1.1vw,17px);line-height:1.35}
+.agenda .t{font-variant-numeric:tabular-nums;white-space:nowrap;font-size:.86em;opacity:.8}
+.agenda .upcoming{opacity:.72}
+.agenda .now{background:var(--soft);font-weight:700;opacity:1;box-shadow:inset 3px 0 0 currentColor}
+.agenda .done{opacity:.34;text-decoration:line-through;text-decoration-thickness:1.5px}
+.agenda .empty{opacity:.5}
+footer{padding:10px 32px 20px;font-size:11.5px;color:var(--dim);display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+footer .warn{font-weight:700}
+:focus-visible{outline:3px solid currentColor;outline-offset:3px}
+
+@media(max-width:1000px){
+  .stage{flex-direction:column}
+  .agenda{width:auto;border-left:0;border-top:1px solid var(--line);padding:18px 24px 22px;max-height:42vh}
+  .agenda ol{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:2px 18px}
+  main{padding:26px 20px 20px}
+  header,.date{padding-left:22px;padding-right:22px}
+  .notice,.special{margin-left:22px;margin-right:22px}
+  footer{padding:10px 22px 18px}
+}
+</style>
+</head>
+<body data-view="loading">
+
+<div class="screen" id="v-loading">
+  <div class="spinner"></div>
+  <p class="muted">Loading schedules…</p>
+</div>
+
+<div class="screen" id="v-pick">
+  <h1>Choose your school</h1>
+  <p class="muted" id="pick-note">Pick yours to see today's bell schedule. This device will remember it.</p>
+  <div class="schools" id="school-list"></div>
+  <p class="muted" id="pick-err" style="margin-top:18px"></p>
+</div>
+
+<div class="screen" id="v-clock">
+  <header>
+    <button class="schoolbtn" id="school-name" title="Change school"></button>
+    <div class="headright">
+      <nav aria-label="Lunch track" id="tracks" hidden></nav>
+      <button class="iconbtn" id="theme-btn" title="Switch theme" aria-label="Switch theme">
+        <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
+          <circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"></circle>
+          <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            d="M12 2.5v2.2M12 19.3v2.2M21.5 12h-2.2M4.7 12H2.5M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6M18.7 18.7l-1.6-1.6M6.9 6.9 5.3 5.3"></path>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="date" id="date"></div>
+  <div id="special-wrap" style="padding:0 32px"><span class="special" id="special" hidden></span></div>
+  <div class="notice" id="notice" hidden><span class="tag">Notice</span><span id="notice-text"></span></div>
+
+  <div class="stage">
+    <main>
+      <div class="clock">
+        <svg class="ring" viewBox="0 0 48 48" aria-hidden="true">
+          <circle class="trk" cx="24" cy="24" r="20" pathLength="100"></circle>
+          <circle class="fil" id="ring" cx="24" cy="24" r="20" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"></circle>
+        </svg>
+        <span id="clocktime">--:--</span><span class="ampm" id="clockampm"></span>
+      </div>
+      <div class="rule"></div>
+      <div class="status"><span class="dot"></span><span id="period">Loading</span></div>
+      <div class="countdown"><span id="countnum">--</span><span class="unit" id="countunit">min</span></div>
+      <div class="remaining" id="remaining">TIME REMAINING</div>
+      <div class="next" id="next"></div>
+    </main>
+    <aside class="agenda">
+      <h2>Today</h2>
+      <ol id="rows"></ol>
+    </aside>
+  </div>
+
+  <footer id="foot"></footer>
+</div>
+
+<script>
+/* =======================================================================
+   Bell Clock — standalone web version.
+   Reads the same overrides.json the Chrome extension uses. The copy baked in
+   below is a last resort so the page still shows something if the fetch fails
+   on a first visit; a successful fetch always wins.
+   ======================================================================= */
+const SOURCES=['overrides.json','https://raw.githubusercontent.com/quinnmackenzie1/bell-schedules/main/overrides.json'];
+const FALLBACK={"version":1,"updated":"2026-10-10","schools":{"timothy-christian-hs":{"name":"Timothy Christian HS","timezone":"America/Chicago","week":{"Monday":"tchs-monday","Tuesday":"tchs-monday","Wednesday":"tchs-monday","Thursday":"tchs-monday","Friday":"tchs-monday"},"templates":{"tchs-monday":{"label":"TCHS Monday","periods":[{"name":"1st Period","start":"08:15","end":"09:05","track":"both"},{"name":"2nd Period","start":"09:09","end":"09:54","track":"both"},{"name":"Break","start":"09:54","end":"10:02","track":"both"},{"name":"3rd Period","start":"10:06","end":"10:51","track":"both"},{"name":"4th Period","start":"10:55","end":"11:40","track":"both"},{"name":"Lunch A","start":"11:40","end":"12:10","track":"A"},{"name":"5th Period B","start":"11:44","end":"12:29","track":"B"},{"name":"5th Period A","start":"12:14","end":"12:59","track":"A"},{"name":"Lunch B","start":"12:29","end":"12:59","track":"B"},{"name":"6th Period","start":"13:03","end":"13:48","track":"both"},{"name":"7th Period","start":"13:52","end":"14:38","track":"both"},{"name":"Focus Period","start":"14:42","end":"15:05","track":"both"}]}},"dates":{}}}};
+const LS='bellClockWeb';
+
+let data=null,meta={},schoolId=null,mode='A',theme='auto';
+
+/* ---------- storage ---------- */
+function load(){try{return JSON.parse(localStorage.getItem(LS)||'{}')}catch(e){return {}}}
+function save(patch){try{localStorage.setItem(LS,JSON.stringify({...load(),...patch}))}catch(e){}}
+
+/* ==CORE:START== */
+/* =====================================================================
+   Bell Clock core — the ONE copy of the scheduling rules.
+   Pure functions only: no DOM, no chrome.*, no fetch. Everything else
+   (extension, web clock, editor, CI validator) builds on this file so the
+   four can never disagree about what period it is.
+   Edit this file, then run `node scripts/build.mjs`.
+   ===================================================================== */
+
+const SCHEMA_VERSION = 1;
+const TRACK_LETTERS = ['A', 'B', 'C'];
+const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+const WEEKDAY_BY_INDEX = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const DAY_MS = 86400000;
+
+// Periods matching this show gray rather than counting down in color.
+const UNTIMED = /break|passing/i;
+
+/* ---------------- time ---------------- */
+function toSec(hhmm) {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm || '');
+  if (!m) return null;
+  const h = +m[1], mi = +m[2];
+  return (h > 23 || mi > 59) ? null : h * 3600 + mi * 60;
+}
+function toHHMM(minutes) {
+  return String(Math.floor(minutes / 60)).padStart(2, '0') + ':' + String(minutes % 60).padStart(2, '0');
+}
+function labelTime(sec) {
+  const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60);
+  return (h % 12 || 12) + ':' + String(m).padStart(2, '0') + ' ' + (h >= 12 ? 'PM' : 'AM');
+}
+function rangeLabel(a, b) {
+  const A = labelTime(a), B = labelTime(b);
+  return A.slice(-2) === B.slice(-2) ? A.slice(0, -3) + ' \u2013 ' + B : A + ' \u2013 ' + B;
+}
+function ordinal(n) {
+  return n + (n % 100 >= 11 && n % 100 <= 13 ? 'th' : ({ 1: 'st', 2: 'nd', 3: 'rd' }[n % 10] || 'th'));
+}
+function minutesLabel(sec) {
+  const m = Math.max(0, Math.ceil(sec / 60));
+  if (m >= 60) return { v: Math.floor(m / 60) + ':' + String(m % 60).padStart(2, '0'), u: 'hr' };
+  return { v: String(m), u: 'min' };
+}
+
+/* ---------------- dates ---------------- */
+function parseISO(s) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || '');
+  return m ? Date.UTC(+m[1], +m[2] - 1, +m[3]) : null;
+}
+function isoOf(ms) {
+  const d = new Date(ms);
+  return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0') + '-' + String(d.getUTCDate()).padStart(2, '0');
+}
+function weekdayOf(iso) {
+  const ms = parseISO(iso);
+  return ms === null ? null : WEEKDAY_BY_INDEX[new Date(ms).getUTCDay()];
+}
+
+/* ---------------- schools ---------------- */
+function availableTracks(school) {
+  const seen = new Set();
+  for (const t of Object.values((school || {}).templates || {}))
+    for (const p of t.periods || []) if (p.track && p.track !== 'both') seen.add(p.track);
+  return TRACK_LETTERS.filter(x => seen.has(x));
+}
+
+function hasNoClasses(school, templateId) {
+  const t = (school.templates || {})[templateId];
+  return !t || !(t.periods || []).length;
+}
+
+/**
+ * Which cycle day falls on `iso`. The cycle advances on school days only, so
+ * weekends and any date assigned a no-class template are stepped over.
+ */
+function cycleDayFor(school, iso) {
+  const rot = school && school.rotation;
+  if (!rot || !rot.start || !Array.isArray(rot.days) || !rot.days.length) return null;
+  const start = parseISO(rot.start), target = parseISO(iso);
+  if (start === null || target === null || target < start) return null;
+  if ((target - start) / DAY_MS > 400) return null;      // stale start date
+
+  let count = 0;
+  for (let t = start; t <= target; t += DAY_MS) {
+    const wd = new Date(t).getUTCDay();
+    const override = (school.dates || {})[isoOf(t)];
+    const skip = (wd === 0 || wd === 6) ? !override : (override && hasNoClasses(school, override));
+    if (skip) continue;
+    if (t === target) return rot.days[count % rot.days.length];
+    count++;
+  }
+  return null;
+}
+
+/** Which template a given date resolves to, and why. */
+function resolveDay(school, iso) {
+  const weekday = weekdayOf(iso);
+  const overrideId = (school.dates || {})[iso];
+  const cycleDay = overrideId ? null : cycleDayFor(school, iso);
+  const templateId = overrideId
+    || (cycleDay ? ((school.rotation.map || {})[cycleDay]) : null)
+    || (cycleDay ? null : (school.week || {})[weekday]);
+  return {
+    weekday,
+    isWeekend: weekday === 'Saturday' || weekday === 'Sunday',
+    overrideId, cycleDay, templateId,
+    template: templateId ? (school.templates || {})[templateId] : null
+  };
+}
+
+/** The rows a student on `track` should see on `iso`, sorted and sanitized. */
+function periodsFor(school, iso, track) {
+  const { template } = resolveDay(school, iso);
+  return ((template && template.periods) || [])
+    .filter(r => r.track === 'both' || (track && r.track === track))
+    .map(r => ({ name: r.name, start: toSec(r.start), end: toSec(r.end) }))
+    .filter(r => r.start !== null && r.end !== null && r.end > r.start)
+    .sort((a, b) => a.start - b.start);
+}
+
+/* ---------------- the one place that decides what is displayed ---------------- */
+function snapshot(data, schoolId, mode, now = new Date()) {
+  const school = data && data.schools ? data.schools[schoolId] : null;
+  if (!school) return { missingSchool: true };
+
+  const zone = school.timezone || 'America/Chicago';
+  const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
+    timeZone: zone, weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23'
+  }).formatToParts(now).map(x => [x.type, x.value]));
+  // en-CA renders YYYY-MM-DD, matching the keys the editor writes.
+  const iso = new Intl.DateTimeFormat('en-CA', {
+    timeZone: zone, year: 'numeric', month: '2-digit', day: '2-digit'
+  }).format(now);
+
+  const day = resolveDay(school, iso);
+  const tracks = availableTracks(school);
+  const activeTrack = tracks.length ? (tracks.includes(mode) ? mode : tracks[0]) : null;
+  const rows = periodsFor(school, iso, activeTrack);
+
+  const secs = Number(parts.hour) * 3600 + Number(parts.minute) * 60 + Number(parts.second);
+  const current = rows.find(r => secs >= r.start && secs < r.end);
+  const next = rows.find(r => r.start > secs);
+
+  let state = 'gray', period, remaining, count, up, left = null;
+  if (current) {
+    left = current.end - secs;
+    state = UNTIMED.test(current.name) ? 'gray' : left <= 300 ? 'red' : left <= 600 ? 'yellow' : 'green';
+    period = current.name;
+    count = minutesLabel(left);
+    remaining = 'TIME REMAINING';
+    up = next ? `Up next \u00b7 ${next.name} at ${labelTime(next.start)}` : 'Last period of the day';
+  } else if (next) {
+    left = next.start - secs;
+    period = secs < rows[0].start ? 'Before school' : 'Passing time';
+    count = minutesLabel(left);
+    remaining = 'UNTIL ' + next.name.toUpperCase();
+    up = `${next.name} starts at ${labelTime(next.start)}`;
+  } else {
+    period = rows.length ? 'School day complete' : 'No school scheduled';
+    count = { v: '\u2014', u: '' };
+    remaining = rows.length ? 'SEE YOU NEXT SCHOOL DAY' : 'NO CLASSES TODAY';
+    up = '';
+  }
+
+  let announcement = null;
+  const a = school.announcement;
+  if (a && a.text && (!a.until || a.until >= iso)) announcement = a.text;
+
+  return {
+    schoolName: school.name, zone, parts, iso, secs, rows, current, next,
+    state, period, count, remaining, up, left,
+    tracks, activeTrack, cycleDay: day.cycleDay, announcement,
+    templateLabel: day.template ? day.template.label : null,
+    isOverride: Boolean(day.overrideId),
+    missingSchool: false
+  };
+}
+
+/* ---------------- validation ----------------
+   Used by the editor, and by CI on every commit, so a broken file cannot
+   reach students even if someone edits the JSON by hand. */
+function validate(d) {
+  const errs = [], warns = [];
+  if (!d || typeof d !== 'object') return { errs: ['File is not a JSON object.'], warns };
+  if (d.version && d.version > SCHEMA_VERSION)
+    warns.push(`File says version ${d.version}; this code understands ${SCHEMA_VERSION}. Older apps may not read it correctly.`);
+  if (!d.schools || typeof d.schools !== 'object') return { errs: ['No "schools" object.'], warns };
+
+  const entries = Object.entries(d.schools);
+  if (!entries.length) errs.push('No schools defined.');
+
+  for (const [sid, s] of entries) {
+    const who = (s && s.name) || sid;
+    if (!s || typeof s !== 'object') { errs.push(`School "${sid}" is not an object.`); continue; }
+    if (!s.name || !String(s.name).trim()) errs.push(`School "${sid}" has no name.`);
+    if (s.timezone) { try { new Intl.DateTimeFormat('en-US', { timeZone: s.timezone }); }
+      catch (e) { errs.push(`${who}: "${s.timezone}" is not a valid time zone.`); } }
+
+    const tpls = Object.entries(s.templates || {});
+    if (!tpls.length) warns.push(`${who}: no templates.`);
+
+    for (const [tid, t] of tpls) {
+      const label = (t && t.label) || tid;
+      const rows = (t && t.periods) || [];
+      if (!rows.length) { warns.push(`${who}: "${label}" has no periods — it reads as a no-school day.`); continue; }
+      rows.forEach((r, i) => {
+        if (!r.name || !String(r.name).trim()) errs.push(`${who} / ${label}: period ${i + 1} has no name.`);
+        if (r.track && !['both', ...TRACK_LETTERS].includes(r.track))
+          errs.push(`${who} / ${label}: "${r.name}" has unknown track "${r.track}".`);
+        const a = toSec(r.start), b = toSec(r.end);
+        if (a === null || b === null) errs.push(`${who} / ${label}: "${r.name || 'period ' + (i + 1)}" has an invalid time.`);
+        else if (b <= a) errs.push(`${who} / ${label}: "${r.name}" ends before it starts.`);
+      });
+      for (const track of TRACK_LETTERS) {
+        const inTrack = rows
+          .filter(r => r.track === 'both' || r.track === track)
+          .filter(r => toSec(r.start) !== null && toSec(r.end) !== null)
+          .sort((x, y) => toSec(x.start) - toSec(y.start));
+        for (let i = 1; i < inTrack.length; i++) {
+          if (toSec(inTrack[i].start) < toSec(inTrack[i - 1].end))
+            errs.push(`${who} / ${label}: "${inTrack[i - 1].name}" and "${inTrack[i].name}" overlap on track ${track}.`);
+        }
+      }
+    }
+
+    for (const [day, tid] of Object.entries(s.week || {}))
+      if (tid && !(s.templates || {})[tid]) errs.push(`${who}: ${day} points at a missing template.`);
+    for (const [date, tid] of Object.entries(s.dates || {})) {
+      if (parseISO(date) === null) errs.push(`${who}: "${date}" is not a valid date.`);
+      if (!(s.templates || {})[tid]) errs.push(`${who}: ${date} points at a missing template.`);
+    }
+
+    if (s.rotation && s.rotation.start) {
+      if (parseISO(s.rotation.start) === null) errs.push(`${who}: rotation start date is invalid.`);
+      const days = s.rotation.days || [];
+      if (!days.length) errs.push(`${who}: rotation has no days.`);
+      const miss = days.filter(x => !(s.rotation.map || {})[x]);
+      if (miss.length) warns.push(`${who}: no template for ${miss.join(', ')}.`);
+      for (const [dayName, tid] of Object.entries(s.rotation.map || {}))
+        if (!(s.templates || {})[tid]) errs.push(`${who}: ${dayName} points at a missing template.`);
+    } else {
+      const unmapped = WEEKDAYS.filter(x => !(s.week || {})[x]);
+      if (unmapped.length) warns.push(`${who}: no normal template for ${unmapped.join(', ')}.`);
+    }
+
+    if (s.announcement && s.announcement.until && parseISO(s.announcement.until) === null)
+      errs.push(`${who}: announcement "hide after" date is invalid.`);
+  }
+  return { errs, warns };
+}
+
+/** Cheap shape check used before trusting a freshly fetched file. */
+function looksValid(d) {
+  if (!d || typeof d !== 'object' || !d.schools || typeof d.schools !== 'object') return false;
+  const ids = Object.keys(d.schools);
+  return ids.length > 0 && ids.every(id => {
+    const s = d.schools[id];
+    return s && typeof s.name === 'string' && s.templates && typeof s.templates === 'object';
+  });
+}
+
+/* ==CORE:END== */
+
+/* ---------- fetching ---------- */
+async function fetchSchedules(){
+  for(const url of SOURCES){
+    try{
+      const r=await fetch(url,{cache:'no-cache'});
+      if(!r.ok)continue;
+      const j=await r.json();
+      if(j&&j.schools&&Object.keys(j.schools).length){
+        save({cache:j,cachedAt:Date.now()});
+        return {data:j,fetchedAt:Date.now(),stale:false,error:null};
+      }
+    }catch(e){ /* try the next source */ }
+  }
+  const st=load();
+  if(st.cache)return {data:st.cache,fetchedAt:st.cachedAt,stale:true,error:'offline'};
+  return {data:FALLBACK,fetchedAt:null,stale:true,error:'offline'};
+}
+
+/* ---------- view helpers ---------- */
+const $=id=>document.getElementById(id);
+const view=n=>document.body.dataset.view=n;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function applyTheme(t){
+  theme=t;
+  if(t==='auto')document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme',t);
+  save({theme:t});
+}
+
+function showPicker(note){
+  const box=$('school-list');box.innerHTML='';
+  if(note)$('pick-note').textContent=note;
+  Object.entries(data.schools).sort((a,b)=>a[1].name.localeCompare(b[1].name)).forEach(([id,s])=>{
+    const b=document.createElement('button');
+    const zone=(s.timezone||'').split('/').pop().replace(/_/g,' ');
+    b.innerHTML=`${esc(s.name)}<span class="sub">${esc(zone)}</span>`;
+    b.onclick=()=>{schoolId=id;save({schoolId:id});view('clock');render()};
+    box.appendChild(b);
+  });
+  $('pick-err').textContent=meta.stale?'Showing the last schedule this device saved — you appear to be offline.':'';
+  view('pick');
+}
+
+function renderTracks(tracks,active){
+  const nav=$('tracks');
+  if(!tracks.length){nav.hidden=true;nav.innerHTML='';nav.dataset.built='';return}
+  nav.hidden=false;
+  const want=tracks.join('');
+  if(nav.dataset.built!==want){
+    nav.dataset.built=want;nav.innerHTML='';
+    for(const t of tracks){
+      const b=document.createElement('button');
+      b.type='button';b.dataset.mode=t;b.textContent=t;
+      b.onclick=()=>{mode=t;save({mode:t});render()};
+      nav.appendChild(b);
+    }
+  }
+  nav.querySelectorAll('button').forEach(b=>b.dataset.mode===active?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current'));
+}
+
+function renderAgenda(rows,current,secs){
+  const ol=$('rows');ol.innerHTML='';
+  if(!rows.length){ol.innerHTML='<li class="empty">No periods today</li>';return}
+  for(const r of rows){
+    const li=document.createElement('li');
+    li.className=current&&r.start===current.start?'now':r.end<=secs?'done':'upcoming';
+    li.innerHTML=`<span>${esc(r.name)}</span><span class="t">${rangeLabel(r.start,r.end)}</span>`;
+    ol.appendChild(li);
+  }
+}
+
+function render(){
+  if(!data||!schoolId)return;
+  const now=new Date();
+  const s=snapshot(data,schoolId,mode,now);
+  if(s.missingSchool)return showPicker('Your school is no longer listed. Pick another.');
+
+  $('school-name').textContent=s.schoolName;
+  renderTracks(s.tracks,s.activeTrack);
+  if(s.activeTrack&&s.activeTrack!==mode)mode=s.activeTrack;
+
+  $('date').textContent=`${s.parts.weekday}, ${s.parts.month} ${ordinal(Number(s.parts.day))}`;
+
+  const tag=s.isOverride&&s.templateLabel?'Special schedule · '+s.templateLabel
+    :s.cycleDay?s.cycleDay+(s.templateLabel?' · '+s.templateLabel:''):null;
+  $('special').hidden=!tag;
+  if(tag)$('special').textContent=tag;
+
+  $('notice').hidden=!s.announcement;
+  if(s.announcement)$('notice-text').textContent=s.announcement;
+
+  const cp=new Intl.DateTimeFormat('en-US',{timeZone:s.zone,hour:'numeric',minute:'2-digit',hour12:true}).formatToParts(now);
+  $('clocktime').textContent=cp.filter(x=>x.type!=='dayPeriod').map(x=>x.value).join('').trim();
+  $('clockampm').textContent=cp.find(x=>x.type==='dayPeriod').value;
+
+  $('period').textContent=s.period;
+  $('countnum').textContent=s.count.v;
+  $('countunit').textContent=s.count.u;
+  $('remaining').textContent=s.remaining;
+  $('next').textContent=s.up;
+  document.documentElement.dataset.state=s.state;
+  $('theme-color').setAttribute('content',getComputedStyle(document.documentElement).getPropertyValue('--bg').trim());
+  renderAgenda(s.rows,s.current,s.secs);
+
+  const when=meta.fetchedAt?new Date(meta.fetchedAt).toLocaleDateString(undefined,{month:'short',day:'numeric'}):'—';
+  $('foot').innerHTML=meta.stale
+    ? `<span>Schedule from ${when}</span><span class="warn">Offline</span>`
+    : `<span>Schedule updated ${when}</span><span>${s.activeTrack?s.activeTrack+' lunch':''}</span>`;
+}
+
+/* ---------- the ring: one fill per wall-clock minute ---------- */
+const ring=$('ring');
+function sweep(){
+  const d=new Date();
+  ring.setAttribute('stroke-dashoffset',(100-((d.getSeconds()+d.getMilliseconds()/1000)/60)*100).toFixed(2));
+}
+
+/* ---------- wiring ---------- */
+$('school-name').onclick=()=>showPicker('Pick a different school.');
+$('theme-btn').onclick=()=>applyTheme(theme==='auto'?'light':theme==='light'?'dark':'auto');
+
+async function boot(){
+  view('loading');
+  const st=load();
+  mode=['A','B','C'].includes(st.mode)?st.mode:'A';
+  applyTheme(st.theme||'auto');
+
+  const res=await fetchSchedules();
+  data=res.data;meta={fetchedAt:res.fetchedAt,stale:res.stale,error:res.error};
+
+  if(st.schoolId&&data.schools[st.schoolId]){schoolId=st.schoolId;view('clock');render()}
+  else showPicker(st.schoolId?'Your school is no longer listed. Pick another.':null);
+}
+
+sweep();
+setInterval(sweep,100);
+setInterval(()=>{if(schoolId&&data)render()},1000);
+// Re-check the hosted file when the tab comes back after being left open overnight.
+setInterval(async()=>{
+  const res=await fetchSchedules();
+  if(res.data){data=res.data;meta={fetchedAt:res.fetchedAt,stale:res.stale,error:res.error};render()}
+},60*60*1000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){sweep();render()}});
+boot();
+</script>
+</body>
+</html>

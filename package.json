@@ -1,0 +1,12 @@
+{
+  "name": "bell-schedules",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Bell schedule data, editor, web clock and Chrome extension.",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "validate": "node scripts/validate.mjs overrides.json overrides-draft.json",
+    "test": "node scripts/test.mjs"
+  }
+}
