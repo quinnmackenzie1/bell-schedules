@@ -1,13 +1,13 @@
 {
   "version": 1,
-  "updated": "2026-10-10",
+  "updated": "2026-10-11",
   "schools": {
     "timothy-christian-hs": {
       "name": "Timothy Christian HS",
       "timezone": "America/Chicago",
       "week": {
         "Monday": "tchs-monday",
-        "Tuesday": "tchs-monday",
+        "Tuesday": "tc-test",
         "Wednesday": "tchs-monday",
         "Thursday": "tchs-monday",
         "Friday": "tchs-monday"
@@ -89,9 +89,90 @@
               "track": "both"
             }
           ]
+        },
+        "tc-test": {
+          "label": "TC Test",
+          "periods": [
+            {
+              "name": "t",
+              "start": "08:00",
+              "end": "11:11",
+              "track": "both"
+            }
+          ]
         }
       },
       "dates": {}
+    },
+    "test": {
+      "name": "test",
+      "timezone": "America/Chicago",
+      "week": {
+        "Monday": "t",
+        "Tuesday": "t",
+        "Friday": "t",
+        "Wednesday": "t",
+        "Thursday": "t"
+      },
+      "templates": {
+        "t": {
+          "label": "t",
+          "periods": [
+            {
+              "name": "1st Period",
+              "start": "08:00",
+              "end": "08:45",
+              "track": "both"
+            },
+            {
+              "name": "2nd Period",
+              "start": "08:49",
+              "end": "09:34",
+              "track": "both"
+            },
+            {
+              "name": "3rd Period",
+              "start": "09:38",
+              "end": "10:23",
+              "track": "both"
+            },
+            {
+              "name": "4th Period",
+              "start": "10:27",
+              "end": "11:12",
+              "track": "both"
+            },
+            {
+              "name": "Lunch",
+              "start": "11:16",
+              "end": "11:46",
+              "track": "both"
+            },
+            {
+              "name": "5th Period",
+              "start": "11:50",
+              "end": "12:35",
+              "track": "both"
+            },
+            {
+              "name": "6th Period",
+              "start": "12:39",
+              "end": "13:24",
+              "track": "both"
+            },
+            {
+              "name": "7th Period",
+              "start": "13:28",
+              "end": "14:13",
+              "track": "both"
+            }
+          ]
+        }
+      },
+      "dates": {},
+      "announcement": {
+        "text": "test"
+      }
     }
   }
 }
