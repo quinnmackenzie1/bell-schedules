@@ -448,7 +448,7 @@ function renderSchools(){
   $('s-ann').value=(s.announcement&&s.announcement.text)||'';
   $('s-annuntil').value=(s.announcement&&s.announcement.until)||'';
 
-  const usingRotation=Boolean(s.rotation&&s.rotation.start);
+  const usingRotation=Boolean(s.rotation);
   $('s-mode').value=usingRotation?'rotation':'week';
   $('weekbox').hidden=usingRotation;
   $('rotbox').hidden=!usingRotation;
@@ -1000,7 +1000,7 @@ $('s-annuntil').onchange=setAnnouncement;
 $('s-mode').onchange=e=>{
   const s=data.schools[curSchool];if(!s)return;
   if(e.target.value==='rotation'){
-    s.rotation=s.rotation||{start:'',days:Array.from({length:6},(_,i)=>'Day '+(i+1)),map:{}};
+    s.rotation=s.rotation||{start:todayISO(),days:Array.from({length:6},(_,i)=>'Day '+(i+1)),map:{}};
   }else delete s.rotation;
   mark();renderSchools();renderPublish();
 };
