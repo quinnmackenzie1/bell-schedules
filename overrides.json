@@ -102,7 +102,10 @@
           ]
         }
       },
-      "dates": {}
+      "dates": {},
+      "announcement": {
+        "text": "testing testing 123"
+      }
     },
     "test": {
       "name": "test",
@@ -169,7 +172,11 @@
           ]
         }
       },
-      "dates": {},
+      "dates": {
+        "2026-08-03": "t",
+        "2026-08-04": "t",
+        "2026-10-11": "t"
+      },
       "announcement": {
         "text": "test"
       }
