@@ -119,6 +119,7 @@ code{background:var(--bg);border:1px solid var(--line);padding:1px 5px;border-ra
   <button class="btn" id="btn-pull">Load draft</button>
   <button class="btn" id="btn-push">Save draft</button>
   <button class="btn primary" id="btn-publish">Publish to students</button>
+  <button class="btn" id="btn-handoff" title="Works even when api.github.com is blocked">Copy &amp; open GitHub</button>
   <input type="file" id="file" accept="application/json,.json" hidden>
 </header>
 
@@ -883,6 +884,7 @@ function renderPublish(){
     ||'<div class="msg ok">Everything checks out. Safe to publish.</div>';
   $('btn-push').disabled=errs.length>0||!gh.token;
   $('btn-publish').disabled=errs.length>0||!gh.token;
+  $('btn-handoff').disabled=errs.length>0;
   $('preview').textContent=JSON.stringify(serialize(),null,2);
 }
 
@@ -1109,7 +1111,12 @@ async function push(){
     await writeFile(gh.draft,JSON.stringify(serialize(),null,2),`Update draft (${todayISO()})`);
     dirty=false;$('dirty').hidden=true;saveLocal();
     status('Draft saved. Students still see the last published version.',false);
-  }catch(e){status('Save failed: '+e.message,true)}
+  }catch(e){
+    status('Save failed: '+e.message,true);
+    if(/fetch|network|load failed/i.test(e.message)&&
+       confirm('Could not reach api.github.com \u2014 that host looks blocked here.\n\nUse the direct GitHub route instead?'))
+      handoff();
+  }
 }
 
 // Publishing copies the current editor state onto the live file.
@@ -1125,7 +1132,46 @@ async function publish(){
     await writeFile(gh.draft,text,`Sync draft with published (${todayISO()})`).catch(()=>{});
     dirty=false;$('dirty').hidden=true;saveLocal();
     status('Published. Students see it within the hour.',false);
-  }catch(e){status('Publish failed: '+e.message,true)}
+  }catch(e){
+    status('Publish failed: '+e.message,true);
+    if(/fetch|network|load failed/i.test(e.message)&&
+       confirm('Could not reach api.github.com \u2014 that host looks blocked on this network or by a browser extension.\n\nUse the direct GitHub route instead? It copies the file and opens GitHub\u2019s editor.'))
+      handoff();
+  }
+}
+
+/* ---------- publishing without api.github.com ----------
+   Some networks and extensions block api.github.com while leaving github.com
+   reachable. This path copies the file and opens GitHub's own editor, so the
+   commit happens on github.com with no API call at all. */
+function editUrl(){
+  const o=gh.owner||'quinnmackenzie1', r=gh.repo||'bell-schedules',
+        b=gh.branch||'main', f=gh.path||'overrides.json';
+  return `https://github.com/${o}/${r}/edit/${b}/${f}`;
+}
+async function handoff(){
+  const {errs}=validate(serialize());
+  if(errs.length)return alert('Fix the validation errors first:\n\n'+errs[0]);
+  const text=JSON.stringify(serialize(),null,2);
+  let copied=false;
+  try{ await navigator.clipboard.writeText(text); copied=true; }
+  catch(e){
+    // Clipboard API needs a user gesture and https; fall back to a textarea.
+    try{
+      const ta=document.createElement('textarea');
+      ta.value=text; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select();
+      copied=document.execCommand('copy');
+      document.body.removeChild(ta);
+    }catch(e2){}
+  }
+  if(!copied){
+    $('preview').textContent=text;
+    alert('Could not copy automatically. The full file is in the File preview box below \u2014 select it all and copy, then click this button again.');
+    return;
+  }
+  alert('Copied.\n\nGitHub opens next. In its editor:\n1. Click in the text, press Ctrl+A, then Ctrl+V\n2. Scroll down and click Commit changes\n\nThat publishes it to students.');
+  window.open(editUrl(),'_blank','noopener');
 }
 
 /* ---------- version history ---------- */
@@ -1314,6 +1360,7 @@ $('file').onchange=e=>{
 $('btn-pull').onclick=pull;
 $('btn-push').onclick=push;
 $('btn-publish').onclick=publish;
+$('btn-handoff').onclick=handoff;
 $('h-load').onclick=loadHistory;
 $('g-save').onclick=()=>{
   gh={owner:$('g-owner').value.trim(),repo:$('g-repo').value.trim(),branch:$('g-branch').value.trim()||'main',
