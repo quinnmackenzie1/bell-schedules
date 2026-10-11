@@ -59,6 +59,8 @@ async function update() {
     chrome.action.setTitle({ title: 'Bell Clock \u2014 click to choose your school' });
     return;
   }
+  // Refresh from GitHub roughly every 10 minutes; getSchedules serves the cache
+  // in between, so this costs one small request per ten ticks.
   const res = await getSchedules();
   if (!res.data) {
     chrome.action.setBadgeText({ text: '!' });

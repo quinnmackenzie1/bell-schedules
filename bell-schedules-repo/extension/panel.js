@@ -253,6 +253,25 @@ async function boot({ force = false } = {}) {
   } else {
     showPicker(settings.schoolId ? 'Your school is no longer listed. Pick another.' : null);
   }
+
+  if (!force) revalidate();
+}
+
+/* Check GitHub in the background on every open. The cached copy is already on
+   screen, so this only ever swaps in something newer. */
+async function revalidate() {
+  const fresh = await getSchedules({ force: true });
+  if (!fresh.data) return;
+  const changed = JSON.stringify(fresh.data) !== JSON.stringify(schedules);
+  meta = { fetchedAt: fresh.fetchedAt, stale: fresh.stale, error: fresh.error };
+  if (changed) {
+    schedules = fresh.data;
+    if (schoolId && !schedules.schools[schoolId]) {
+      showPicker('Your school is no longer listed. Pick another.');
+      return;
+    }
+  }
+  if (schoolId) render();
 }
 
 sweep();

@@ -9,7 +9,7 @@ export const SOURCES = [
 ];
 
 const CACHE_KEY = 'scheduleCache';
-const MAX_AGE_MS = 60 * 60 * 1000;   // refresh hourly
+const MAX_AGE_MS = 10 * 60 * 1000;   // treat anything older than 10 min as stale
 const RETRY_MS = 5 * 60 * 1000;      // after a failure, try again in five minutes
 
 /* ---------- network ---------- */
@@ -17,7 +17,8 @@ async function fetchFresh() {
   let lastErr = 'unknown error';
   for (const url of SOURCES) {
     try {
-      const r = await fetch(url, { cache: 'no-cache' });
+      const bust = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
+      const r = await fetch(bust, { cache: 'no-store' });
       if (!r.ok) { lastErr = `HTTP ${r.status}`; continue; }
       const json = await r.json();
       if (!looksValid(json)) { lastErr = 'file was not in the expected format'; continue; }
@@ -35,6 +36,7 @@ async function fetchFresh() {
  * or missing network never blanks the display.
  */
 export async function getSchedules({ force = false } = {}) {
+  // force: skip the cache entirely and go to the network first.
   const store = await chrome.storage.local.get(CACHE_KEY);
   const cached = store[CACHE_KEY];
   const age = cached ? Date.now() - cached.fetchedAt : Infinity;
