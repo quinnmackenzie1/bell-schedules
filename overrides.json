@@ -14,7 +14,7 @@
       },
       "templates": {
         "tchs-mon-fri": {
-          "label": "Monday / Friday",
+          "label": "Friday",
           "periods": [
             {
               "name": "1st Period",
@@ -54,15 +54,15 @@
             },
             {
               "name": "5th Period",
-              "start": "12:14",
-              "end": "12:59",
-              "track": "A"
-            },
-            {
-              "name": "5th Period",
               "start": "11:44",
               "end": "12:29",
               "track": "B"
+            },
+            {
+              "name": "5th Period",
+              "start": "12:14",
+              "end": "12:59",
+              "track": "A"
             },
             {
               "name": "Lunch B",
@@ -91,7 +91,7 @@
           ]
         },
         "tchs-tuesday": {
-          "label": "Tuesday (Chapel)",
+          "label": "Tuesday",
           "periods": [
             {
               "name": "1st Period",
@@ -125,15 +125,15 @@
             },
             {
               "name": "3rd Period",
-              "start": "11:31",
-              "end": "12:31",
-              "track": "A"
-            },
-            {
-              "name": "3rd Period",
               "start": "11:01",
               "end": "12:01",
               "track": "B"
+            },
+            {
+              "name": "3rd Period",
+              "start": "11:31",
+              "end": "12:31",
+              "track": "A"
             },
             {
               "name": "Lunch B",
@@ -162,8 +162,14 @@
           ]
         },
         "tchs-wednesday": {
-          "label": "Wednesday (Late Start)",
+          "label": "Wednesday",
           "periods": [
+            {
+              "name": "Teacher PLC",
+              "start": "07:15",
+              "end": "09:15",
+              "track": "both"
+            },
             {
               "name": "Advisory",
               "start": "09:15",
@@ -209,7 +215,7 @@
           ]
         },
         "tchs-thursday": {
-          "label": "Thursday (Chapel)",
+          "label": "Thursday",
           "periods": [
             {
               "name": "1st Period",
@@ -243,15 +249,15 @@
             },
             {
               "name": "4th Period",
-              "start": "11:31",
-              "end": "12:31",
-              "track": "A"
-            },
-            {
-              "name": "4th Period",
               "start": "11:01",
               "end": "12:01",
               "track": "B"
+            },
+            {
+              "name": "4th Period",
+              "start": "11:31",
+              "end": "12:31",
+              "track": "A"
             },
             {
               "name": "Lunch B",
@@ -278,6 +284,83 @@
               "track": "both"
             }
           ]
+        },
+        "monday": {
+          "label": "Monday",
+          "periods": [
+            {
+              "name": "1st Period",
+              "start": "08:15",
+              "end": "09:05",
+              "track": "both"
+            },
+            {
+              "name": "2nd Period",
+              "start": "09:09",
+              "end": "09:54",
+              "track": "both"
+            },
+            {
+              "name": "Break",
+              "start": "09:54",
+              "end": "10:06",
+              "track": "both"
+            },
+            {
+              "name": "3rd Period",
+              "start": "10:06",
+              "end": "10:51",
+              "track": "both"
+            },
+            {
+              "name": "4th Period",
+              "start": "10:55",
+              "end": "11:40",
+              "track": "both"
+            },
+            {
+              "name": "Lunch A",
+              "start": "11:40",
+              "end": "12:10",
+              "track": "A"
+            },
+            {
+              "name": "5th Period",
+              "start": "11:44",
+              "end": "12:29",
+              "track": "B"
+            },
+            {
+              "name": "5th Period",
+              "start": "12:14",
+              "end": "12:59",
+              "track": "A"
+            },
+            {
+              "name": "Lunch B",
+              "start": "12:29",
+              "end": "12:59",
+              "track": "B"
+            },
+            {
+              "name": "6th Period",
+              "start": "13:03",
+              "end": "13:48",
+              "track": "both"
+            },
+            {
+              "name": "7th Period",
+              "start": "13:52",
+              "end": "14:38",
+              "track": "both"
+            },
+            {
+              "name": "Focus Period",
+              "start": "14:42",
+              "end": "15:05",
+              "track": "both"
+            }
+          ]
         }
       },
       "dates": {}
@@ -286,17 +369,6 @@
       "name": "Maine South HS",
       "timezone": "America/Chicago",
       "week": {},
-      "rotation": {
-        "start": "2026-08-17",
-        "days": [
-          "Odd Day",
-          "Even Day"
-        ],
-        "map": {
-          "Odd Day": "ms-odd",
-          "Even Day": "ms-even"
-        }
-      },
       "templates": {
         "ms-odd": {
           "label": "Odd Day (1 / 3 / 5 / 7)",
@@ -327,15 +399,21 @@
             },
             {
               "name": "Period 5",
-              "start": "12:04",
-              "end": "13:29",
-              "track": "A"
+              "start": "11:24",
+              "end": "12:04",
+              "track": "B"
             },
             {
               "name": "Period 5",
               "start": "11:24",
-              "end": "12:04",
-              "track": "B"
+              "end": "12:49",
+              "track": "C"
+            },
+            {
+              "name": "Period 5",
+              "start": "12:04",
+              "end": "13:29",
+              "track": "A"
             },
             {
               "name": "Lunch B",
@@ -348,12 +426,6 @@
               "start": "12:49",
               "end": "13:29",
               "track": "B"
-            },
-            {
-              "name": "Period 5",
-              "start": "11:24",
-              "end": "12:49",
-              "track": "C"
             },
             {
               "name": "Lunch C",
@@ -404,15 +476,21 @@
             },
             {
               "name": "Period 6",
-              "start": "12:04",
-              "end": "13:29",
-              "track": "A"
+              "start": "11:24",
+              "end": "12:04",
+              "track": "B"
             },
             {
               "name": "Period 6",
               "start": "11:24",
-              "end": "12:04",
-              "track": "B"
+              "end": "12:49",
+              "track": "C"
+            },
+            {
+              "name": "Period 6",
+              "start": "12:04",
+              "end": "13:29",
+              "track": "A"
             },
             {
               "name": "Lunch B",
@@ -425,12 +503,6 @@
               "start": "12:49",
               "end": "13:29",
               "track": "B"
-            },
-            {
-              "name": "Period 6",
-              "start": "11:24",
-              "end": "12:49",
-              "track": "C"
             },
             {
               "name": "Lunch C",
@@ -453,7 +525,18 @@
           ]
         }
       },
-      "dates": {}
+      "dates": {},
+      "rotation": {
+        "start": "2026-08-17",
+        "days": [
+          "Odd Day",
+          "Even Day"
+        ],
+        "map": {
+          "Odd Day": "ms-odd",
+          "Even Day": "ms-even"
+        }
+      }
     },
     "timothy-christian-ms": {
       "name": "Timothy Christian MS",
