@@ -240,6 +240,9 @@ export function validate(d) {
       for (const [dayName, tid] of Object.entries(s.rotation.map || {}))
         if (!(s.templates || {})[tid]) errs.push(`${who}: ${dayName} points at a missing template.`);
     } else {
+      // A rotation with no start date is inert: the school silently falls back
+      // to the weekly map, which is almost never what the editor intended.
+      if (s.rotation) errs.push(`${who}: the rotating cycle has no start date, so it is being ignored.`);
       const unmapped = WEEKDAYS.filter(x => !(s.week || {})[x]);
       if (unmapped.length) warns.push(`${who}: no normal template for ${unmapped.join(', ')}.`);
     }

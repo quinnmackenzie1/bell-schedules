@@ -1072,7 +1072,12 @@ async function autoPopulate(){
 }
 
 /* ===================== GitHub ===================== */
-const PREVIEW_HOST=/(^|\.)claude\.ai$/.test(location.hostname);
+// Writing to GitHub needs api.github.com, which only works when this page is
+// served from somewhere with normal network permissions: your Pages site, a
+// local server, or a file you opened yourself. Sandboxed previews block it.
+const HOST=location.hostname;
+const CAN_REACH_API = /(^|\.)github\.io$/.test(HOST) || HOST==='localhost' || HOST==='127.0.0.1' || HOST==='';
+const PREVIEW_HOST = !CAN_REACH_API;
 function b64(str){const bytes=new TextEncoder().encode(str);let bin='';for(let i=0;i<bytes.length;i+=0x8000)bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000));return btoa(bin)}
 function unb64(s){const bin=atob(s.replace(/\s/g,''));const arr=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);return new TextDecoder().decode(arr)}
 function api(path,opts={}){
@@ -1121,7 +1126,7 @@ async function pull(){
 }
 // Saving writes the DRAFT. Students never read this file.
 async function push(){
-  if(PREVIEW_HOST)return status('GitHub sync is blocked in the chat preview. Use Download JSON here, or host this editor on your Pages site.',true);
+  if(PREVIEW_HOST)return status(`Saving does not work from this preview (${HOST}). Use Download JSON here, or open the editor from your Pages site.`,true);
   const {errs}=validate(serialize());
   if(errs.length)return status('Fix the validation errors first.',true);
   try{
@@ -1131,14 +1136,14 @@ async function push(){
   }catch(e){
     status('Save failed: '+e.message,true);
     if(/fetch|network|load failed/i.test(e.message)&&
-       confirm('Could not reach api.github.com \u2014 that host looks blocked here.\n\nUse the direct GitHub route instead?'))
+       confirm(`Could not reach api.github.com from ${HOST}.\n\nUse the direct GitHub route instead?`))
       handoff();
   }
 }
 
 // Publishing copies the current editor state onto the live file.
 async function publish(){
-  if(PREVIEW_HOST)return status('Publishing is blocked in the chat preview. Run this editor from your Pages site.',true);
+  if(PREVIEW_HOST)return status(`Publishing does not work from this preview (${HOST}). Open the editor at quinnmackenzie1.github.io/bell-schedules/schedule-editor.html.`,true);
   const text=JSON.stringify(serialize(),null,2);
   const {errs,warns}=validate(serialize());
   if(errs.length)return status('Fix the validation errors before publishing.',true);
@@ -1152,7 +1157,7 @@ async function publish(){
   }catch(e){
     status('Publish failed: '+e.message,true);
     if(/fetch|network|load failed/i.test(e.message)&&
-       confirm('Could not reach api.github.com \u2014 that host looks blocked on this network or by a browser extension.\n\nUse the direct GitHub route instead? It copies the file and opens GitHub\u2019s editor.'))
+       confirm(`Could not reach api.github.com from ${HOST}.\n\nUse the direct GitHub route instead? It copies the file and opens GitHub\u2019s editor.`))
       handoff();
   }
 }
@@ -1166,6 +1171,9 @@ async function testConnection(){
   const show=()=>out.innerHTML=rows.join('');
   const add=(kind,label,detail)=>{rows.push(`<div class="msg ${kind}"><b>${label}</b><br>${detail}</div>`);show()};
   out.innerHTML='<p class="hint">Testing\u2026</p>';
+  add(CAN_REACH_API?'ok':'warn','0. Where this page is running',
+    CAN_REACH_API?`<code>${HOST}</code> \u2014 direct saving is possible here.`
+    :`<code>${HOST}</code> is a sandboxed preview, which blocks requests to other sites. That alone explains a failure below. Open the editor at <b>quinnmackenzie1.github.io/bell-schedules/schedule-editor.html</b> to save directly.`);
 
   // 1. Can this browser reach GitHub's API host at all? No token involved.
   let hostOk=false;
@@ -1176,7 +1184,9 @@ async function testConnection(){
       hostOk?`Reachable (HTTP ${r.status}).`:`Returned HTTP ${r.status}, which is unexpected.`);
   }catch(e){
     add('err','1. Reaching api.github.com',
-      `Blocked \u2014 the request never completed (${e.message}).<br>This is a network or browser-extension block, not a token problem. Try an Incognito window; if it still fails, ask your tech director to allow <b>api.github.com</b>. Until then use <b>Copy &amp; open GitHub</b>, which only needs github.com.`);
+      CAN_REACH_API
+        ? `The request never completed (${e.message}).<br>Since this page is on <code>${HOST}</code>, that points at a firewall, VPN or content filter on this machine. <b>Copy &amp; open GitHub</b> works regardless.`
+        : `Expected \u2014 <code>${HOST}</code> is a sandboxed preview and blocks this. Not a problem with your network or token. Open the editor from your Pages site to save directly.`);
   }
 
   // 2. Can the public file be read? Proves github.com itself is fine.
