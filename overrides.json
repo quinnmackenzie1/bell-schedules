@@ -281,6 +281,179 @@
         }
       },
       "dates": {}
+    },
+    "maine-south-hs": {
+      "name": "Maine South HS",
+      "timezone": "America/Chicago",
+      "week": {},
+      "rotation": {
+        "start": "2026-08-17",
+        "days": [
+          "Odd Day",
+          "Even Day"
+        ],
+        "map": {
+          "Odd Day": "ms-odd",
+          "Even Day": "ms-even"
+        }
+      },
+      "templates": {
+        "ms-odd": {
+          "label": "Odd Day (1 / 3 / 5 / 7)",
+          "periods": [
+            {
+              "name": "Collaboration / Planning",
+              "start": "07:30",
+              "end": "08:20",
+              "track": "both"
+            },
+            {
+              "name": "Period 1",
+              "start": "08:30",
+              "end": "09:50",
+              "track": "both"
+            },
+            {
+              "name": "Period 3",
+              "start": "09:57",
+              "end": "11:17",
+              "track": "both"
+            },
+            {
+              "name": "Lunch A",
+              "start": "11:24",
+              "end": "12:04",
+              "track": "A"
+            },
+            {
+              "name": "Period 5",
+              "start": "12:04",
+              "end": "13:29",
+              "track": "A"
+            },
+            {
+              "name": "Period 5",
+              "start": "11:24",
+              "end": "12:04",
+              "track": "B"
+            },
+            {
+              "name": "Lunch B",
+              "start": "12:04",
+              "end": "12:49",
+              "track": "B"
+            },
+            {
+              "name": "Period 5 (cont.)",
+              "start": "12:49",
+              "end": "13:29",
+              "track": "B"
+            },
+            {
+              "name": "Period 5",
+              "start": "11:24",
+              "end": "12:49",
+              "track": "C"
+            },
+            {
+              "name": "Lunch C",
+              "start": "12:49",
+              "end": "13:29",
+              "track": "C"
+            },
+            {
+              "name": "Period 7",
+              "start": "13:36",
+              "end": "14:56",
+              "track": "both"
+            },
+            {
+              "name": "Office Hours",
+              "start": "15:00",
+              "end": "15:30",
+              "track": "both"
+            }
+          ]
+        },
+        "ms-even": {
+          "label": "Even Day (2 / 4 / 6 / 8)",
+          "periods": [
+            {
+              "name": "Collaboration / Planning",
+              "start": "07:30",
+              "end": "08:20",
+              "track": "both"
+            },
+            {
+              "name": "Period 2",
+              "start": "08:30",
+              "end": "09:50",
+              "track": "both"
+            },
+            {
+              "name": "Period 4",
+              "start": "09:57",
+              "end": "11:17",
+              "track": "both"
+            },
+            {
+              "name": "Lunch A",
+              "start": "11:24",
+              "end": "12:04",
+              "track": "A"
+            },
+            {
+              "name": "Period 6",
+              "start": "12:04",
+              "end": "13:29",
+              "track": "A"
+            },
+            {
+              "name": "Period 6",
+              "start": "11:24",
+              "end": "12:04",
+              "track": "B"
+            },
+            {
+              "name": "Lunch B",
+              "start": "12:04",
+              "end": "12:49",
+              "track": "B"
+            },
+            {
+              "name": "Period 6 (cont.)",
+              "start": "12:49",
+              "end": "13:29",
+              "track": "B"
+            },
+            {
+              "name": "Period 6",
+              "start": "11:24",
+              "end": "12:49",
+              "track": "C"
+            },
+            {
+              "name": "Lunch C",
+              "start": "12:49",
+              "end": "13:29",
+              "track": "C"
+            },
+            {
+              "name": "Period 8",
+              "start": "13:36",
+              "end": "14:56",
+              "track": "both"
+            },
+            {
+              "name": "Office Hours",
+              "start": "15:00",
+              "end": "15:30",
+              "track": "both"
+            }
+          ]
+        }
+      },
+      "dates": {}
     }
   }
 }
