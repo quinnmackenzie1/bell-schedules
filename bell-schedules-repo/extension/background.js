@@ -1,7 +1,7 @@
 import { getSchedules, snapshot } from './engine.js';
 
 const COLORS = { green: '#2e7d32', yellow: '#b07e00', red: '#c62828', gray: '#6b7280' };
-const DEFAULTS = { schoolId: null, mode: 'A', notifyEnd: 0, notifyStart: false, newtab: true };
+const DEFAULTS = { schoolId: null, mode: 'A', notifyEnd: 0, notifyStart: false };
 
 function init() {
   chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => {});
@@ -84,14 +84,3 @@ async function update() {
 
   await maybeNotify(s, cfg);
 }
-
-/* ---------- new tab opt-out ----------
-   The override is declared in the manifest, so the page always loads; when the
-   student has turned it off we hand the tab back to Chrome's own new tab. */
-chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
-  if (!info.url || !tab) return;
-  const mine = chrome.runtime.getURL('newtab.html');
-  if (!info.url.startsWith(mine)) return;
-  const { newtab } = await chrome.storage.sync.get({ newtab: true });
-  if (newtab === false) chrome.tabs.update(tabId, { url: 'about:newtab' }).catch(() => {});
-});

@@ -368,52 +368,6 @@ code{background:var(--bg);border:1px solid var(--line);padding:1px 5px;border-ra
 </main>
 
 <script>
-/* ===================== state ===================== */
-const TZS=['America/Chicago','America/New_York','America/Denver','America/Los_Angeles','America/Phoenix','America/Anchorage','Pacific/Honolulu'];
-const DOW=WEEKDAYS;
-const MONTH_NAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
-const LS='bellEditor';
-const LS_DATA='bellEditorDraft';
-
-let data=blank();
-let curSchool=null, curTpl=null, paint=null, lastClicked=null, dirty=false;
-let gh={owner:'',repo:'',branch:'main',path:'overrides.json',draft:'overrides-draft.json',token:''};
-
-function blank(){return {version:1,updated:todayISO(),schools:{}}}
-function todayISO(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-function slug(s){return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)||'item'}
-function uniqueKey(obj,base){let k=base,i=2;while(obj[k])k=base+'-'+(i++);return k}
-function $(id){return document.getElementById(id)}
-function mark(){dirty=true;$('dirty').hidden=false;saveLocal()}
-
-/* Keep a working copy in this browser so closing the tab never loses work.
-   This is a draft only - it is not what students read. Publishing to GitHub
-   is still what makes a change go live. */
-let saveTimer=null;
-function saveLocal(){
-  clearTimeout(saveTimer);
-  saveTimer=setTimeout(()=>{
-    try{localStorage.setItem(LS_DATA,JSON.stringify({data,curSchool,savedAt:new Date().toISOString()}))}catch(e){}
-  },400);
-}
-function restoreLocal(){
-  try{
-    const raw=localStorage.getItem(LS_DATA);if(!raw)return null;
-    const j=JSON.parse(raw);
-    if(!j||!j.data||!j.data.schools||!Object.keys(j.data.schools).length)return null;
-    return j;
-  }catch(e){return null}
-}
-function clearLocal(){try{localStorage.removeItem(LS_DATA)}catch(e){}}
-
-/* deterministic color per template id */
-function hue(id){let h=0;for(const c of id)h=(h*31+c.charCodeAt(0))%360;return h}
-function tplColor(id){return `hsl(${hue(id)} 62% 76%)`}
-
-/* ===================== time helpers ===================== */
-const toMin=t=>{const s=toSec(t);return s===null?null:s/60};
-const fmt=t=>{const s=toSec(t);return s===null?'—':labelTime(s)};
-
 /* ==CORE:START== */
 /* =====================================================================
    Bell Clock core — the ONE copy of the scheduling rules.
@@ -678,6 +632,52 @@ function looksValid(d) {
 }
 
 /* ==CORE:END== */
+
+/* ===================== state ===================== */
+const TZS=['America/Chicago','America/New_York','America/Denver','America/Los_Angeles','America/Phoenix','America/Anchorage','Pacific/Honolulu'];
+const DOW=WEEKDAYS;
+const MONTH_NAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const LS='bellEditor';
+const LS_DATA='bellEditorDraft';
+
+let data=blank();
+let curSchool=null, curTpl=null, paint=null, lastClicked=null, dirty=false;
+let gh={owner:'',repo:'',branch:'main',path:'overrides.json',draft:'overrides-draft.json',token:''};
+
+function blank(){return {version:1,updated:todayISO(),schools:{}}}
+function todayISO(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function slug(s){return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)||'item'}
+function uniqueKey(obj,base){let k=base,i=2;while(obj[k])k=base+'-'+(i++);return k}
+function $(id){return document.getElementById(id)}
+function mark(){dirty=true;$('dirty').hidden=false;saveLocal()}
+
+/* Keep a working copy in this browser so closing the tab never loses work.
+   This is a draft only - it is not what students read. Publishing to GitHub
+   is still what makes a change go live. */
+let saveTimer=null;
+function saveLocal(){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{
+    try{localStorage.setItem(LS_DATA,JSON.stringify({data,curSchool,savedAt:new Date().toISOString()}))}catch(e){}
+  },400);
+}
+function restoreLocal(){
+  try{
+    const raw=localStorage.getItem(LS_DATA);if(!raw)return null;
+    const j=JSON.parse(raw);
+    if(!j||!j.data||!j.data.schools||!Object.keys(j.data.schools).length)return null;
+    return j;
+  }catch(e){return null}
+}
+function clearLocal(){try{localStorage.removeItem(LS_DATA)}catch(e){}}
+
+/* deterministic color per template id */
+function hue(id){let h=0;for(const c of id)h=(h*31+c.charCodeAt(0))%360;return h}
+function tplColor(id){return `hsl(${hue(id)} 62% 76%)`}
+
+/* ===================== time helpers ===================== */
+const toMin=t=>{const s=toSec(t);return s===null?null:s/60};
+const fmt=t=>{const s=toSec(t);return s===null?'—':labelTime(s)};
 
 /* ===================== rendering ===================== */
 function renderSchools(){

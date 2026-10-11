@@ -1,7 +1,7 @@
 import { getSchedules, snapshot, rangeLabel, ordinal } from './engine.js';
 
 const $ = id => document.getElementById(id);
-const DEFAULTS = { schoolId: null, mode: 'A', notifyEnd: 0, notifyStart: false, theme: 'auto', newtab: true };
+const DEFAULTS = { schoolId: null, mode: 'A', notifyEnd: 0, notifyStart: false, theme: 'auto' };
 
 let schedules = null, meta = {}, settings = { ...DEFAULTS };
 let schoolId = null, mode = 'A';
@@ -185,7 +185,6 @@ function fillSettings() {
   $('opt-end').value = String(settings.notifyEnd || 0);
   $('opt-start').checked = Boolean(settings.notifyStart);
   $('opt-theme').value = settings.theme || 'auto';
-  $('opt-newtab').checked = settings.newtab !== false;
 }
 async function saveSetting(patch) {
   settings = { ...settings, ...patch };
@@ -215,7 +214,8 @@ $('opt-start').onchange = async e => {
   saveSetting({ notifyStart: e.target.checked });
 };
 $('opt-theme').onchange = e => { applyTheme(e.target.value); saveSetting({ theme: e.target.value }); };
-$('opt-newtab').onchange = e => saveSetting({ newtab: e.target.checked });
+$('opt-open-full').onclick = () =>
+  chrome.tabs.create({ url: chrome.runtime.getURL('newtab.html') });
 $('opt-clearnames').onclick = () => {
   if (!confirm('Remove every custom class name you have set?')) return;
   names = {};

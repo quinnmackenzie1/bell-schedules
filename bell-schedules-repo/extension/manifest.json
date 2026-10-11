@@ -1,13 +1,12 @@
 {
   "manifest_version": 3,
   "name": "Bell Clock",
-  "version": "4.0",
+  "version": "4.1",
   "description": "See the current class period and time remaining for your school's bell schedule.",
   "permissions": [
     "sidePanel",
     "alarms",
-    "storage",
-    "tabs"
+    "storage"
   ],
   "optional_permissions": [
     "notifications"
@@ -31,9 +30,6 @@
   },
   "side_panel": {
     "default_path": "panel.html"
-  },
-  "chrome_url_overrides": {
-    "newtab": "newtab.html"
   },
   "icons": {
     "16": "icons/icon16.png",
