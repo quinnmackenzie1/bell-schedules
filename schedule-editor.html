@@ -1029,22 +1029,35 @@ function serialize(){
    overrides.json is public, so the editor can read it with a plain fetch.
    Writing still needs a token; this is only for populating the editor. */
 const PUBLIC_SOURCES=[
-  'overrides-draft.json',
-  'overrides.json',
-  'https://raw.githubusercontent.com/quinnmackenzie1/bell-schedules/main/overrides-draft.json',
-  'https://raw.githubusercontent.com/quinnmackenzie1/bell-schedules/main/overrides.json'
+  {path:'overrides-draft.json',label:'draft'},
+  {path:'overrides.json',label:'published schedule'},
+  {path:'https://raw.githubusercontent.com/quinnmackenzie1/bell-schedules/main/overrides-draft.json',label:'draft'},
+  {path:'https://raw.githubusercontent.com/quinnmackenzie1/bell-schedules/main/overrides.json',label:'published schedule'}
 ];
+
+// Read every copy we can reach and keep the NEWEST by its `updated` date.
+// A draft normally wins, but a stale draft left behind should not hide a newer
+// published file — that silently showed an old school list.
 async function loadPublished(){
-  for(const url of PUBLIC_SOURCES){
+  const found=[];
+  const seen=new Set();
+  for(const src of PUBLIC_SOURCES){
+    const key=src.path.replace(/^.*\//,'');
+    if(seen.has(key))continue;
     try{
-      const r=await fetch(url,{cache:'no-cache'});
+      const r=await fetch(src.path+(src.path.includes('?')?'&':'?')+'t='+Date.now(),{cache:'no-store'});
       if(!r.ok)continue;
       const j=await r.json();
-      if(j&&j.schools&&Object.keys(j.schools).length)return {data:j,url};
+      if(!j||!j.schools||!Object.keys(j.schools).length)continue;
+      seen.add(key);
+      found.push({data:j,label:src.label,updated:j.updated||'0000-00-00',count:Object.keys(j.schools).length});
     }catch(e){ /* try the next source */ }
   }
-  return null;
+  if(!found.length)return null;
+  found.sort((a,b)=>a.updated===b.updated?b.count-a.count:(a.updated<b.updated?1:-1));
+  return found[0];
 }
+
 async function autoPopulate(){
   const found=await loadPublished();
   if(!found)return false;
@@ -1052,8 +1065,7 @@ async function autoPopulate(){
   curSchool=Object.keys(data.schools)[0]||null;
   curTpl=null;dirty=false;$('dirty').hidden=true;
   saveLocal();renderAll();
-  const which=found.url.includes('draft')?'draft':'published schedule';
-  note(`Loaded your ${which} (${Object.keys(data.schools).length} school(s)). Edits stay here until you save or publish.`,'auto');
+  note(`Loaded your ${found.label} from ${found.updated} \u2014 ${found.count} school(s). Edits stay here until you save or publish.`,'auto');
   return true;
 }
 
