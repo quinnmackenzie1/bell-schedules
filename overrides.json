@@ -267,6 +267,150 @@
       "announcement": {
         "text": "33"
       }
+    },
+    "maine-south-hs": {
+      "name": "Maine South HS",
+      "timezone": "America/Chicago",
+      "week": {
+        "Monday": "odd",
+        "Tuesday": "even",
+        "Wednesday": "odd",
+        "Thursday": "even",
+        "Friday": "odd"
+      },
+      "templates": {
+        "odd": {
+          "label": "Odd",
+          "periods": [
+            {
+              "name": "1st Period",
+              "start": "08:30",
+              "end": "09:50",
+              "track": "both"
+            },
+            {
+              "name": "3nd Period",
+              "start": "09:57",
+              "end": "11:17",
+              "track": "both"
+            },
+            {
+              "name": "Lunch A",
+              "start": "11:24",
+              "end": "11:54",
+              "track": "A"
+            },
+            {
+              "name": "5rd Period (part 1) · B",
+              "start": "11:24",
+              "end": "12:08",
+              "track": "B"
+            },
+            {
+              "name": "5rd Period · C",
+              "start": "11:24",
+              "end": "12:51",
+              "track": "C"
+            },
+            {
+              "name": "5rd Period · A",
+              "start": "12:01",
+              "end": "13:21",
+              "track": "A"
+            },
+            {
+              "name": "Lunch B",
+              "start": "12:08",
+              "end": "12:38",
+              "track": "B"
+            },
+            {
+              "name": "5rd Period (part 2) · B",
+              "start": "12:45",
+              "end": "13:21",
+              "track": "B"
+            },
+            {
+              "name": "Lunch C",
+              "start": "12:51",
+              "end": "13:21",
+              "track": "C"
+            },
+            {
+              "name": "7th Period",
+              "start": "13:28",
+              "end": "14:48",
+              "track": "both"
+            }
+          ]
+        },
+        "even": {
+          "label": "Even",
+          "periods": [
+            {
+              "name": "2nd Period",
+              "start": "08:30",
+              "end": "09:50",
+              "track": "both"
+            },
+            {
+              "name": "4th Period",
+              "start": "09:57",
+              "end": "11:17",
+              "track": "both"
+            },
+            {
+              "name": "Lunch A",
+              "start": "11:24",
+              "end": "11:54",
+              "track": "A"
+            },
+            {
+              "name": "6th Period (part 1) · B",
+              "start": "11:24",
+              "end": "12:08",
+              "track": "B"
+            },
+            {
+              "name": "6th Period · C",
+              "start": "11:24",
+              "end": "12:51",
+              "track": "C"
+            },
+            {
+              "name": "6th Period · A",
+              "start": "12:01",
+              "end": "13:21",
+              "track": "A"
+            },
+            {
+              "name": "Lunch B",
+              "start": "12:08",
+              "end": "12:38",
+              "track": "B"
+            },
+            {
+              "name": "6th Period (part 2) · B",
+              "start": "12:45",
+              "end": "13:21",
+              "track": "B"
+            },
+            {
+              "name": "Lunch C",
+              "start": "12:51",
+              "end": "13:21",
+              "track": "C"
+            },
+            {
+              "name": "8th Period",
+              "start": "13:28",
+              "end": "14:48",
+              "track": "both"
+            }
+          ]
+        }
+      },
+      "dates": {}
     }
   }
 }
