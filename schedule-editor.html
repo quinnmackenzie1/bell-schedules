@@ -238,16 +238,17 @@ code{background:var(--bg);border:1px solid var(--line);padding:1px 5px;border-ra
           <label class="field">Break after period <span class="hint" style="font-weight:400">0 = none</span>
             <input type="number" id="g-breakafter" value="0" min="0" max="12"></label>
           <label class="field">Break length (minutes)<input type="number" id="g-breaklen" value="10" min="0" max="60"></label>
-          <label class="field">Lunch after period <span class="hint" style="font-weight:400">0 = none</span>
-            <input type="number" id="g-lunchafter" value="4" min="0" max="12"></label>
-          <label class="field">Lunch length (minutes)<input type="number" id="g-lunchlen" value="30" min="10" max="90"></label>
-          <label class="field">Lunch tracks
+          <label class="field">Number of lunches
             <select id="g-tracks">
-              <option value="1">One lunch for everyone</option>
-              <option value="2">Two (A and B)</option>
-              <option value="3">Three (A, B and C)</option>
+              <option value="0">No lunch</option>
+              <option value="1" selected>1 — everyone eats together</option>
+              <option value="2">2 — A and B</option>
+              <option value="3">3 — A, B and C</option>
             </select>
           </label>
+          <label class="field">Lunch follows period <span class="hint" style="font-weight:400">which period it comes after</span>
+            <input type="number" id="g-lunchafter" value="4" min="1" max="12"></label>
+          <label class="field">Lunch length (minutes)<input type="number" id="g-lunchlen" value="30" min="10" max="90"></label>
         </div>
         <div class="row" style="margin-top:14px">
           <button class="btn primary" id="gen-run">Generate periods</button>
@@ -1266,14 +1267,14 @@ $('gen-run').onclick=()=>{
   const t=data.schools[curSchool].templates[curTpl];
   if((t.periods||[]).length&&!confirm('Replace the '+t.periods.length+' periods already in this template?'))return;
   const num=id=>Number($(id).value)||0;
-  if(Number($('g-tracks').value)>1&&!num('g-lunchafter'))
-    return alert('Set "Lunch after period" to the period lunch follows — split lunches need it.');
+  const lunches=Number($('g-tracks').value);
   const rows=generatePeriods({
     start:$('g-start').value||'08:00', count:num('g-count')||7,
     classLen:num('g-class')||45, passLen:num('g-pass'),
     breakAfter:num('g-breakafter'), breakLen:num('g-breaklen'),
-    lunchAfter:num('g-lunchafter'), lunchLen:num('g-lunchlen')||30,
-    lunchTracks:Number($('g-tracks').value)||1
+    lunchAfter:lunches>0?(num('g-lunchafter')||4):0,
+    lunchLen:num('g-lunchlen')||30,
+    lunchTracks:lunches||1
   });
   t.periods=rows.sort((a,b)=>toMin(a.start)-toMin(b.start));
   $('gen-box').hidden=true;mark();renderTemplates();renderPublish();
