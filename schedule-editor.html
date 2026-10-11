@@ -328,10 +328,12 @@ code{background:var(--bg);border:1px solid var(--line);padding:1px 5px;border-ra
       </div>
       <div class="row" style="margin-top:12px">
         <button class="btn" id="g-save">Save connection</button>
+        <button class="btn" id="g-test">Test connection</button>
         <button class="btn danger" id="g-clear">Forget token</button>
         <button class="btn danger" id="d-clear">Discard local draft</button>
         <span class="hint" id="g-status"></span>
       </div>
+      <div id="g-diag" style="margin-top:12px"></div>
     </div>
     <div class="card">
       <h2>Recent published versions</h2>
@@ -1155,6 +1157,54 @@ async function publish(){
   }
 }
 
+/* ---------- connection diagnosis ----------
+   Three separate things can fail, and they need different fixes. This checks
+   each in turn so the answer is not a guess. */
+async function testConnection(){
+  const out=$('g-diag');
+  const rows=[];
+  const show=()=>out.innerHTML=rows.join('');
+  const add=(kind,label,detail)=>{rows.push(`<div class="msg ${kind}"><b>${label}</b><br>${detail}</div>`);show()};
+  out.innerHTML='<p class="hint">Testing\u2026</p>';
+
+  // 1. Can this browser reach GitHub's API host at all? No token involved.
+  let hostOk=false;
+  try{
+    const r=await fetch('https://api.github.com/rate_limit?t='+Date.now(),{cache:'no-store'});
+    hostOk=r.ok||r.status===401||r.status===403;
+    add(hostOk?'ok':'err','1. Reaching api.github.com',
+      hostOk?`Reachable (HTTP ${r.status}).`:`Returned HTTP ${r.status}, which is unexpected.`);
+  }catch(e){
+    add('err','1. Reaching api.github.com',
+      `Blocked \u2014 the request never completed (${e.message}).<br>This is a network or browser-extension block, not a token problem. Try an Incognito window; if it still fails, ask your tech director to allow <b>api.github.com</b>. Until then use <b>Copy &amp; open GitHub</b>, which only needs github.com.`);
+  }
+
+  // 2. Can the public file be read? Proves github.com itself is fine.
+  try{
+    const r=await fetch(`https://raw.githubusercontent.com/${gh.owner||'quinnmackenzie1'}/${gh.repo||'bell-schedules'}/${gh.branch||'main'}/${gh.path||'overrides.json'}?t=`+Date.now(),{cache:'no-store'});
+    add(r.ok?'ok':'warn','2. Reading your published file',
+      r.ok?'Readable, so GitHub itself is reachable from here.':`HTTP ${r.status} \u2014 check the owner, repo and file path above.`);
+  }catch(e){
+    add('warn','2. Reading your published file',`Failed (${e.message}).`);
+  }
+
+  if(!hostOk)return;
+
+  // 3. Does the token work, and does it have write permission?
+  if(!gh.token)return add('warn','3. Your token','No token saved. Paste one above and click Save connection.');
+  try{
+    const r=await api(`${gh.path}?ref=${encodeURIComponent(gh.branch)}&t=`+Date.now());
+    if(r.status===401)return add('err','3. Your token','Rejected (401). It is wrong or expired \u2014 generate a new fine-grained token and paste it in.');
+    if(r.status===404)return add('warn','3. Your token','Reached GitHub, but that file path was not found. Check the Live file field.');
+    if(!r.ok)return add('err','3. Your token',`GitHub returned HTTP ${r.status}.`);
+    add('ok','3. Your token','Valid and the file is readable.');
+    const scopes=r.headers.get('x-accepted-github-permissions')||'';
+    add('ok','Ready to publish','Everything checks out \u2014 <b>Save draft</b> and <b>Publish to students</b> should work.'+(scopes?`<br><span style="opacity:.75">Permissions required by GitHub: ${scopes}</span>`:''));
+  }catch(e){
+    add('err','3. Your token',`The request failed (${e.message}).`);
+  }
+}
+
 /* ---------- publishing without api.github.com ----------
    Some networks and extensions block api.github.com while leaving github.com
    reachable. This path copies the file and opens GitHub's own editor, so the
@@ -1377,6 +1427,7 @@ $('btn-push').onclick=push;
 $('btn-publish').onclick=publish;
 $('btn-handoff').onclick=handoff;
 $('h-load').onclick=loadHistory;
+$('g-test').onclick=testConnection;
 $('g-save').onclick=()=>{
   gh={owner:$('g-owner').value.trim(),repo:$('g-repo').value.trim(),branch:$('g-branch').value.trim()||'main',
       path:$('g-path').value.trim()||'overrides.json',draft:$('g-draft').value.trim()||'overrides-draft.json',
