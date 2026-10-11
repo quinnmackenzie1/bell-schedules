@@ -454,6 +454,345 @@
         }
       },
       "dates": {}
+    },
+    "timothy-christian-ms": {
+      "name": "Timothy Christian MS",
+      "timezone": "America/Chicago",
+      "week": {
+        "Monday": "tcms-monday",
+        "Tuesday": "tcms-tuesday",
+        "Wednesday": "tcms-wednesday",
+        "Thursday": "tcms-thursday",
+        "Friday": "tcms-friday"
+      },
+      "templates": {
+        "tcms-monday": {
+          "label": "Monday (Crew Groups)",
+          "periods": [
+            {
+              "name": "1st Hour",
+              "start": "08:15",
+              "end": "09:05",
+              "track": "both"
+            },
+            {
+              "name": "2nd Hour",
+              "start": "09:08",
+              "end": "09:54",
+              "track": "both"
+            },
+            {
+              "name": "Break",
+              "start": "09:54",
+              "end": "10:09",
+              "track": "both"
+            },
+            {
+              "name": "3rd Hour",
+              "start": "10:11",
+              "end": "10:57",
+              "track": "both"
+            },
+            {
+              "name": "4th Hour",
+              "start": "11:00",
+              "end": "11:48",
+              "track": "both"
+            },
+            {
+              "name": "Lunch",
+              "start": "11:51",
+              "end": "12:14",
+              "track": "both"
+            },
+            {
+              "name": "5th Hour",
+              "start": "12:17",
+              "end": "13:02",
+              "track": "both"
+            },
+            {
+              "name": "6th Hour",
+              "start": "13:05",
+              "end": "13:52",
+              "track": "both"
+            },
+            {
+              "name": "7th Hour",
+              "start": "13:58",
+              "end": "14:35",
+              "track": "both"
+            },
+            {
+              "name": "Crew Groups",
+              "start": "14:40",
+              "end": "15:05",
+              "track": "both"
+            }
+          ]
+        },
+        "tcms-friday": {
+          "label": "Friday (Focus Period)",
+          "periods": [
+            {
+              "name": "1st Hour",
+              "start": "08:15",
+              "end": "09:05",
+              "track": "both"
+            },
+            {
+              "name": "2nd Hour",
+              "start": "09:08",
+              "end": "09:54",
+              "track": "both"
+            },
+            {
+              "name": "Break",
+              "start": "09:54",
+              "end": "10:09",
+              "track": "both"
+            },
+            {
+              "name": "3rd Hour",
+              "start": "10:11",
+              "end": "10:57",
+              "track": "both"
+            },
+            {
+              "name": "4th Hour",
+              "start": "11:00",
+              "end": "11:48",
+              "track": "both"
+            },
+            {
+              "name": "Lunch",
+              "start": "11:51",
+              "end": "12:14",
+              "track": "both"
+            },
+            {
+              "name": "5th Hour",
+              "start": "12:17",
+              "end": "13:02",
+              "track": "both"
+            },
+            {
+              "name": "6th Hour",
+              "start": "13:05",
+              "end": "13:52",
+              "track": "both"
+            },
+            {
+              "name": "7th Hour",
+              "start": "13:58",
+              "end": "14:35",
+              "track": "both"
+            },
+            {
+              "name": "Focus Period",
+              "start": "14:40",
+              "end": "15:05",
+              "track": "both"
+            }
+          ]
+        },
+        "tcms-tuesday": {
+          "label": "Tuesday",
+          "periods": [
+            {
+              "name": "1st Hour",
+              "start": "08:15",
+              "end": "09:16",
+              "track": "both"
+            },
+            {
+              "name": "4th Hour",
+              "start": "09:19",
+              "end": "10:04",
+              "track": "both"
+            },
+            {
+              "name": "Break",
+              "start": "10:05",
+              "end": "10:15",
+              "track": "both"
+            },
+            {
+              "name": "2nd Hour",
+              "start": "10:18",
+              "end": "11:03",
+              "track": "both"
+            },
+            {
+              "name": "3rd Hour",
+              "start": "11:06",
+              "end": "11:51",
+              "track": "both"
+            },
+            {
+              "name": "Lunch",
+              "start": "11:51",
+              "end": "12:14",
+              "track": "both"
+            },
+            {
+              "name": "5th Hour",
+              "start": "12:17",
+              "end": "13:02",
+              "track": "both"
+            },
+            {
+              "name": "6th Hour",
+              "start": "13:05",
+              "end": "13:50",
+              "track": "both"
+            },
+            {
+              "name": "7th Hour (Electives)",
+              "start": "13:55",
+              "end": "14:30",
+              "track": "both"
+            },
+            {
+              "name": "Focus Period",
+              "start": "14:35",
+              "end": "15:05",
+              "track": "both"
+            }
+          ]
+        },
+        "tcms-thursday": {
+          "label": "Thursday",
+          "periods": [
+            {
+              "name": "1st Hour",
+              "start": "08:15",
+              "end": "09:16",
+              "track": "both"
+            },
+            {
+              "name": "2nd Hour",
+              "start": "09:19",
+              "end": "10:04",
+              "track": "both"
+            },
+            {
+              "name": "Break",
+              "start": "10:05",
+              "end": "10:15",
+              "track": "both"
+            },
+            {
+              "name": "3rd Hour",
+              "start": "10:18",
+              "end": "11:03",
+              "track": "both"
+            },
+            {
+              "name": "4th Hour",
+              "start": "11:06",
+              "end": "11:51",
+              "track": "both"
+            },
+            {
+              "name": "Lunch",
+              "start": "11:51",
+              "end": "12:14",
+              "track": "both"
+            },
+            {
+              "name": "5th Hour",
+              "start": "12:17",
+              "end": "13:02",
+              "track": "both"
+            },
+            {
+              "name": "6th Hour",
+              "start": "13:05",
+              "end": "13:50",
+              "track": "both"
+            },
+            {
+              "name": "7th Hour (Electives)",
+              "start": "13:55",
+              "end": "14:30",
+              "track": "both"
+            },
+            {
+              "name": "Focus Period",
+              "start": "14:35",
+              "end": "15:05",
+              "track": "both"
+            }
+          ]
+        },
+        "tcms-wednesday": {
+          "label": "Wednesday (Late Start)",
+          "periods": [
+            {
+              "name": "1st Hour",
+              "start": "09:15",
+              "end": "09:50",
+              "track": "both"
+            },
+            {
+              "name": "2nd Hour",
+              "start": "09:53",
+              "end": "10:28",
+              "track": "both"
+            },
+            {
+              "name": "3rd Hour",
+              "start": "10:31",
+              "end": "11:04",
+              "track": "both"
+            },
+            {
+              "name": "Chapel",
+              "start": "11:07",
+              "end": "11:37",
+              "track": "both"
+            },
+            {
+              "name": "4th Hour",
+              "start": "11:40",
+              "end": "12:25",
+              "track": "both"
+            },
+            {
+              "name": "Lunch",
+              "start": "12:28",
+              "end": "12:50",
+              "track": "both"
+            },
+            {
+              "name": "5th Hour",
+              "start": "12:53",
+              "end": "13:28",
+              "track": "both"
+            },
+            {
+              "name": "6th Hour",
+              "start": "13:31",
+              "end": "14:04",
+              "track": "both"
+            },
+            {
+              "name": "7th Hour",
+              "start": "14:09",
+              "end": "14:43",
+              "track": "both"
+            },
+            {
+              "name": "Home Base",
+              "start": "14:48",
+              "end": "15:05",
+              "track": "both"
+            }
+          ]
+        }
+      },
+      "dates": {}
     }
   }
 }
