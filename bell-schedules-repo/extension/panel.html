@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Bell Clock</title>
+<link rel="stylesheet" href="panel.css">
+<script src="panel.js" type="module" defer></script>
+</head>
+<body data-schedule="A" data-view="loading">
+
+  <div class="screen" id="view-loading">
+    <div class="spinner"></div>
+    <p class="muted">Loading schedules…</p>
+  </div>
+
+  <div class="screen pick" id="view-pick">
+    <h1>Choose your school</h1>
+    <p class="muted" id="pick-note">Pick yours to see today's bell schedule. You can change it later.</p>
+    <div class="schools" id="school-list"></div>
+  </div>
+
+  <div class="screen" id="view-error">
+    <h1>Can't reach the schedule</h1>
+    <p class="muted" id="err-detail"></p>
+    <button class="btn" id="retry">Try again</button>
+  </div>
+
+  <div class="screen settings" id="view-settings">
+    <div class="sethead">
+      <h1>Settings</h1>
+      <button class="btn sm" id="set-close">Done</button>
+    </div>
+    <div class="setbody">
+      <h2>Reminders</h2>
+      <label class="opt">
+        <span>Warn me before a period ends</span>
+        <select id="opt-end">
+          <option value="0">Off</option>
+          <option value="2">2 minutes</option>
+          <option value="5">5 minutes</option>
+          <option value="10">10 minutes</option>
+        </select>
+      </label>
+      <label class="opt">
+        <span>Tell me when a period starts</span>
+        <input type="checkbox" id="opt-start">
+      </label>
+
+      <h2>Appearance</h2>
+      <label class="opt">
+        <span>Theme</span>
+        <select id="opt-theme">
+          <option value="auto">Match my system</option>
+          <option value="light">Always light</option>
+          <option value="dark">Always dark</option>
+        </select>
+      </label>
+      <label class="opt">
+        <span>Show the clock on new tabs</span>
+        <input type="checkbox" id="opt-newtab">
+      </label>
+
+      <h2>My classes</h2>
+      <p class="muted">Tap any period in the schedule list to rename it, so "3rd Period" can read "AP Bio, Rm 214". Your names stay on this device.</p>
+      <button class="btn sm" id="opt-clearnames">Reset all my names</button>
+
+      <h2>School</h2>
+      <div class="row">
+        <button class="btn sm" id="opt-school">Change school</button>
+        <button class="btn sm" id="opt-refresh">Refresh now</button>
+      </div>
+      <p class="muted" id="set-foot"></p>
+    </div>
+  </div>
+
+  <div class="screen clock-view" id="view-clock">
+    <header>
+      <button class="schoolbtn" id="school-name" title="Change school"></button>
+      <div class="headright">
+        <nav aria-label="Lunch track" id="tracks" hidden></nav>
+        <button class="gear" id="open-settings" title="Settings" aria-label="Settings">
+          <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+            <circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="2"></circle>
+            <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 2.8v2.4M12 18.8v2.4M21.2 12h-2.4M5.2 12H2.8M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7M18.5 18.5l-1.7-1.7M7.2 7.2 5.5 5.5"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="date" id="date"></div>
+    <div class="special" id="special" hidden></div>
+    <div class="notice" id="notice" hidden></div>
+
+    <main>
+      <div class="clock">
+        <svg class="ring" viewBox="0 0 48 48" aria-hidden="true">
+          <circle class="track" cx="24" cy="24" r="20" pathLength="100"></circle>
+          <circle class="fill" id="ring" cx="24" cy="24" r="20" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"></circle>
+        </svg>
+        <span id="clocktime">--:--</span><span class="ampm" id="clockampm"></span>
+      </div>
+      <div class="rule"></div>
+      <div class="status"><span class="dot"></span><span id="period">Loading</span></div>
+      <div class="countdown"><span id="countnum">--</span><span class="unit" id="countunit">min</span></div>
+      <div class="remaining" id="remaining">TIME REMAINING</div>
+      <div class="next" id="next"></div>
+    </main>
+
+    <section class="agenda" aria-label="Today's schedule">
+      <ol id="rows"></ol>
+    </section>
+
+    <footer id="foot"></footer>
+  </div>
+
+</body>
+</html>
