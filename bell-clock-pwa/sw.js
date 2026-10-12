@@ -2,11 +2,12 @@
    Goal: the page opens instantly and still works when the school wifi drops,
    without ever serving a stale schedule when the network is available. */
 
-const VERSION = 'bell-v1';
+const VERSION = 'bell-v2';   // bumped: new icon artwork
 const SHELL = [
   'clock.html',
   'icons/icon-192.png',
   'icons/icon-512.png',
+  'icons/apple-touch-icon-180.png',
   'icons/apple-touch-icon.png',
   'app.webmanifest'
 ];
