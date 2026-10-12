@@ -87,6 +87,10 @@ table.periods td.x{width:34px}
 .day.assigned{color:#10221a;font-weight:700}
 .day.today{outline:2px solid var(--accent);outline-offset:-2px}
 .legend{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.6}
+#daytip{position:fixed;z-index:60;pointer-events:none;opacity:0;transition:opacity .09s ease;
+  background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 10px;
+  box-shadow:0 6px 18px #00000026;font-size:12.5px;font-weight:600;white-space:nowrap}
+#daytip[data-on]{opacity:1}
 
 /* ---------- validation ---------- */
 .msg{padding:9px 12px;border-radius:8px;font-size:13px;margin-bottom:7px;line-height:1.45}
@@ -280,6 +284,8 @@ code{background:var(--bg);border:1px solid var(--line);padding:1px 5px;border-ra
       <p class="legend">Unmarked weekdays use the normal week from the Schools tab. Weekends are dimmed but can still be assigned, for a Saturday exam session.</p>
     </div>
   </section>
+
+  <div id="daytip" role="tooltip" aria-hidden="true"></div>
 
   <!-- ============ PREVIEW ============ -->
   <section id="tab-preview" hidden>
@@ -680,8 +686,27 @@ function restoreLocal(){
 function clearLocal(){try{localStorage.removeItem(LS_DATA)}catch(e){}}
 
 /* deterministic color per template id */
+// Hashing an id to a hue clustered badly: similar template names landed within
+// a few degrees of each other, giving four shades of the same green. Assign from
+// a deliberately spaced palette by position instead, so adjacent templates are
+// always far apart on the colour wheel.
+const PALETTE=[
+  {h:205,s:68,l:74}, {h:0,  s:74,l:66}, {h:120,s:74,l:66}, {h:60, s:74,l:74},
+  {h:300,s:74,l:66}, {h:240,s:74,l:66}, {h:325,s:44,l:82}, {h:125,s:74,l:78},
+  {h:30, s:44,l:66}, {h:270,s:44,l:66}, {h:335,s:74,l:70}, {h:85, s:74,l:66},
+  {h:165,s:74,l:66}, {h:160,s:50,l:82}, {h:215,s:74,l:66}, {h:270,s:74,l:78}
+];
 function hue(id){let h=0;for(const c of id)h=(h*31+c.charCodeAt(0))%360;return h}
-function tplColor(id){return `hsl(${hue(id)} 62% 76%)`}
+function tplColor(id){
+  const s=curSchool?data.schools[curSchool]:null;
+  const ids=s?Object.keys(s.templates||{}):[];
+  const i=ids.indexOf(id);
+  if(i<0)return `hsl(${hue(id)} 62% 76%)`;
+  const c=PALETTE[i%PALETTE.length];
+  // Past twelve templates, step the lightness so the cycle stays distinguishable.
+  const tier=Math.floor(i/PALETTE.length);
+  return `hsl(${c.h} ${c.s}% ${Math.max(56,c.l-tier*10)}%)`;
+}
 
 /* ===================== time helpers ===================== */
 const toMin=t=>{const s=toSec(t);return s===null?null:s/60};
@@ -854,14 +879,39 @@ function monthEl(y,m,s){
     if(tid&&(s.templates||{})[tid]){
       cell.classList.add('assigned');
       cell.style.background=tplColor(tid);
-      cell.title=`${iso} · ${s.templates[tid].label||tid}`;
-    }else cell.title=iso;
+    }
     cell.onmousedown=e=>{e.preventDefault();applyPaint(iso,e.shiftKey);window.__painting=true};
-    cell.onmouseenter=()=>{if(window.__painting)applyPaint(iso,false)};
+    cell.onmouseenter=e=>{if(window.__painting)applyPaint(iso,false);showDayTip(e,iso)};
+    cell.onmousemove=moveDayTip;
+    cell.onmouseleave=hideDayTip;
     days.appendChild(cell);
   }
   wrap.appendChild(days);
   return wrap;
+}
+
+// Hovering a date shows that day's actual schedule, resolved the same way the
+// extension resolves it — calendar override, rotation, then the weekly map.
+function showDayTip(e,iso){
+  const tip=$('daytip');
+  const r=resolveDay(data.schools[curSchool],iso);
+  tip.textContent = r.template ? (r.template.label||r.templateId) : 'No schedule assigned';
+  tip.setAttribute('data-on','');
+  tip.setAttribute('aria-hidden','false');
+  moveDayTip(e);
+}
+function moveDayTip(e){
+  const tip=$('daytip');
+  const pad=14,w=tip.offsetWidth,hh=tip.offsetHeight;
+  let x=e.clientX+pad,y=e.clientY+pad;
+  if(x+w>innerWidth-8)x=e.clientX-w-pad;
+  if(y+hh>innerHeight-8)y=Math.max(8,e.clientY-hh-pad);
+  tip.style.left=x+'px';tip.style.top=y+'px';
+}
+function hideDayTip(){
+  const tip=$('daytip');
+  tip.removeAttribute('data-on');
+  tip.setAttribute('aria-hidden','true');
 }
 
 function applyPaint(iso,range){
