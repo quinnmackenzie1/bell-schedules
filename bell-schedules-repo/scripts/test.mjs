@@ -14,8 +14,12 @@ const data = JSON.parse(readFileSync(new URL('../overrides.json', import.meta.ur
 const S = Object.keys(data.schools)[0];
 
 /* --- real data --- */
-is(snapshot(data, S, 'A', new Date('2026-10-12T16:52:00Z')).period, 'Lunch A', 'A track at 11:52 is lunch');
-is(snapshot(data, S, 'B', new Date('2026-10-12T16:52:00Z')).period, '5th Period B', 'B track at 11:52 is class');
+// Derived from the data rather than hardcoded, so renaming a template or a
+// period cannot break the suite.
+const atNoonish = t => snapshot(data, S, t, new Date('2026-10-12T16:52:00Z'));
+ok(/lunch/i.test(atNoonish('A').period), 'A track is at lunch at 11:52');
+ok(!/lunch/i.test(atNoonish('B').period), 'B track is in class at 11:52');
+ok(atNoonish('A').period !== atNoonish('B').period, 'the two tracks differ at 11:52');
 is(snapshot(data, S, 'A', new Date('2026-10-11T16:00:00Z')).period, 'No school scheduled', 'Sunday is empty');
 is(snapshot(data, S, 'A', new Date('2026-10-12T19:58:30Z')).state, 'yellow', '6:30 left is yellow');
 is(snapshot(data, S, 'A', new Date('2026-10-12T20:01:00Z')).state, 'red', '4 min left is red');
@@ -51,8 +55,12 @@ ok(springForward.iso === '2027-03-14', 'spring-forward Sunday still resolves');
 /* --- validation --- */
 is(validate(data).errs, [], 'live file has no errors');
 const broken = JSON.parse(JSON.stringify(data));
-broken.schools[S].templates['tchs-monday'].periods.push({ name: 'Clash', start: '08:30', end: '09:00', track: 'both' });
+const firstTpl = Object.keys(broken.schools[S].templates).find(
+  t => (broken.schools[S].templates[t].periods || []).length);
+broken.schools[S].templates[firstTpl].periods.push(
+  { name: 'Clash', start: '08:30', end: '09:00', track: 'both' });
 ok(validate(broken).errs.some(e => /overlap/.test(e)), 'overlap on the same track is an error');
+ok(Object.keys(data.schools).length >= 1, 'the live file has at least one school');
 const crossTrack = JSON.parse(JSON.stringify(data));
 ok(!validate(crossTrack).errs.some(e => /overlap/.test(e)), 'A and B overlapping each other is allowed');
 const badDate = JSON.parse(JSON.stringify(data));

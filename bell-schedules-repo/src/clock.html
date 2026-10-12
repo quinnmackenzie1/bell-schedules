@@ -6,6 +6,15 @@
 <meta name="theme-color" content="#bce9a5" id="theme-color">
 <meta name="description" content="Current class period and time remaining for your school's bell schedule.">
 <title>Bell Clock</title>
+
+<!-- Home-screen app: icon, full-screen launch, offline support. -->
+<link rel="manifest" href="app.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Bell Clock">
 <style>
 :root{
   --ink:#162118;
@@ -334,6 +343,18 @@ setInterval(async()=>{
 },60*60*1000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){sweep();render()}});
 boot();
+
+/* ---------- home-screen app support ---------- */
+if(typeof navigator!=='undefined'&&'serviceWorker' in navigator){
+  addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});   // fine if unsupported
+    let reloading=false;
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{
+      // A new version took over; reload once so the page matches it.
+      if(reloading)return;reloading=true;location.reload();
+    });
+  });
+}
 </script>
 </body>
 </html>
