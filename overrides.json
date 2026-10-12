@@ -415,10 +415,36 @@
         }
       },
       "dates": {
+        "2026-10-13": "half-day",
         "2026-10-14": "no-school",
         "2026-10-15": "no-school",
         "2026-10-16": "no-school",
-        "2026-10-13": "half-day"
+        "2026-11-24": "half-day",
+        "2026-11-25": "no-school",
+        "2026-11-26": "no-school",
+        "2026-11-27": "no-school",
+        "2026-12-18": "half-day",
+        "2026-12-21": "no-school",
+        "2026-12-22": "no-school",
+        "2026-12-23": "no-school",
+        "2026-12-24": "no-school",
+        "2026-12-25": "no-school",
+        "2026-12-28": "no-school",
+        "2026-12-29": "no-school",
+        "2026-12-30": "no-school",
+        "2026-12-31": "no-school",
+        "2027-01-01": "no-school",
+        "2027-01-18": "no-school",
+        "2027-02-15": "no-school",
+        "2027-02-26": "no-school",
+        "2027-03-26": "no-school",
+        "2027-03-29": "no-school",
+        "2027-03-30": "no-school",
+        "2027-03-31": "no-school",
+        "2027-04-01": "no-school",
+        "2027-04-02": "no-school",
+        "2027-05-28": "half-day",
+        "2027-05-31": "no-school"
       }
     },
     "maine-south-hs": {
@@ -966,7 +992,7 @@
               "track": "both"
             },
             {
-              "name": "Period 3 \u00b7 Homeroom",
+              "name": "Period 3 · Homeroom",
               "start": "09:20",
               "end": "09:50",
               "track": "both"
