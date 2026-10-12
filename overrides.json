@@ -10,11 +10,11 @@
         "Tuesday": "tchs-tuesday",
         "Wednesday": "tchs-wednesday",
         "Thursday": "tchs-thursday",
-        "Friday": "tchs-mon-fri"
+        "Friday": "friday"
       },
       "templates": {
         "tchs-mon-fri": {
-          "label": "Friday",
+          "label": "Monday",
           "periods": [
             {
               "name": "1st Period",
@@ -165,12 +165,6 @@
           "label": "Wednesday",
           "periods": [
             {
-              "name": "Teacher PLC",
-              "start": "07:15",
-              "end": "09:15",
-              "track": "both"
-            },
-            {
               "name": "Advisory",
               "start": "09:15",
               "end": "09:40",
@@ -285,8 +279,8 @@
             }
           ]
         },
-        "monday": {
-          "label": "Monday",
+        "friday": {
+          "label": "Friday",
           "periods": [
             {
               "name": "1st Period",
