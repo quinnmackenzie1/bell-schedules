@@ -52,6 +52,7 @@ h1{font-size:20px;margin:0 0 8px;letter-spacing:-.01em}
 body[data-view=loading] #v-loading,
 body[data-view=pick] #v-pick,
 body[data-view=clock] #v-clock{display:flex}
+body[data-view=year] #v-year{display:flex}
 #v-loading{align-items:center;justify-content:center;gap:14px}
 .spinner{width:24px;height:24px;border:2.5px solid var(--line2);border-top-color:var(--ink);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -105,11 +106,37 @@ main{flex:1;text-align:center;display:flex;flex-direction:column;align-items:cen
 .agenda .now{background:var(--soft);font-weight:700;opacity:1;box-shadow:inset 3px 0 0 currentColor}
 .agenda .done{opacity:.34;text-decoration:line-through;text-decoration-thickness:1.5px}
 .agenda .empty{opacity:.5}
+/* ---------- Year at a Glance ---------- */
+#v-year{overflow:auto}
+.yearhead{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 32px 6px;flex-wrap:wrap}
+.yearhead h1{font-size:19px;margin:0}
+.yearsub{font-size:13px;opacity:.7;padding:0 32px 4px}
+.legend{display:flex;gap:7px;flex-wrap:wrap;padding:12px 32px 4px}
+.legend span{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;
+  border:1px solid var(--line2);border-radius:20px;padding:5px 11px}
+.legend i{width:12px;height:12px;border-radius:3px;display:block;flex:none}
+.months{display:grid;grid-template-columns:repeat(auto-fill,minmax(236px,1fr));gap:14px;padding:16px 32px 28px}
+.month{border:1px solid var(--line);border-radius:10px;padding:12px}
+.month h3{font-size:13px;margin:0 0 8px;font-weight:700}
+.dow,.days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.dow span{font-size:9.5px;text-align:center;opacity:.55;font-weight:700;padding-bottom:3px}
+.day{aspect-ratio:1;border-radius:6px;font-size:11.5px;display:flex;align-items:center;justify-content:center;
+  background:var(--soft);user-select:none}
+.day.out{visibility:hidden}
+.day.we{opacity:.3}
+.day.has{color:#12201a;font-weight:700}
+.day.today{outline:2px solid currentColor;outline-offset:-2px}
+#daytip{position:fixed;z-index:60;pointer-events:none;opacity:0;transition:opacity .09s ease;
+  background:var(--card);border:1px solid var(--line2);border-radius:8px;padding:6px 10px;
+  box-shadow:0 6px 18px #00000026;font-size:12.5px;font-weight:600;white-space:nowrap;color:var(--ink)}
+#daytip[data-on]{opacity:1}
 footer{padding:10px 32px 20px;font-size:11.5px;color:var(--dim);display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
 footer .warn{font-weight:700}
 :focus-visible{outline:3px solid currentColor;outline-offset:3px}
 
 @media(max-width:1000px){
+  .yearhead,.yearsub,.legend{padding-left:22px;padding-right:22px}
+  .months{padding:14px 22px 24px;grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
   .stage{flex-direction:column}
   .agenda{width:auto;border-left:0;border-top:1px solid var(--line);padding:18px 24px 22px;max-height:42vh}
   .agenda ol{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:2px 18px}
@@ -139,6 +166,12 @@ footer .warn{font-weight:700}
     <button class="schoolbtn" id="school-name" title="Change school"></button>
     <div class="headright">
       <nav aria-label="Lunch track" id="tracks" hidden></nav>
+      <button class="iconbtn" id="year-btn" title="Year at a Glance" aria-label="Year at a Glance">
+        <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
+          <rect x="3" y="5" width="18" height="16" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"></rect>
+          <path d="M3 10h18M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+        </svg>
+      </button>
       <button class="iconbtn" id="theme-btn" title="Switch theme" aria-label="Switch theme">
         <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
           <circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"></circle>
@@ -176,6 +209,22 @@ footer .warn{font-weight:700}
 
   <footer id="foot"></footer>
 </div>
+
+<div class="screen" id="v-year">
+  <div class="yearhead">
+    <h1 id="year-title">Year at a Glance</h1>
+    <button class="iconbtn" id="year-back" title="Back to the clock" aria-label="Back to the clock" style="opacity:1">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+        <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+    </button>
+  </div>
+  <div class="yearsub" id="year-sub"></div>
+  <div class="legend" id="year-legend"></div>
+  <div class="months" id="year-months"></div>
+</div>
+
+<div id="daytip" role="tooltip" aria-hidden="true"></div>
 
 <script>
 /* =======================================================================
@@ -581,9 +630,117 @@ function sweep(){
   ring.setAttribute('stroke-dashoffset',(100-((d.getSeconds()+d.getMilliseconds()/1000)/60)*100).toFixed(2));
 }
 
+/* ---------- Year at a Glance ----------
+   A read-only version of the editor's calendar: every school day coloured by
+   the template it resolves to, so a rotation or a run of special days is
+   visible at a glance. Hovering a date names its schedule. */
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const PALETTE=[
+  {h:205,s:68,l:74}, {h:0,  s:74,l:66}, {h:120,s:74,l:66}, {h:60, s:74,l:74},
+  {h:300,s:74,l:66}, {h:240,s:74,l:66}, {h:325,s:44,l:82}, {h:125,s:74,l:78},
+  {h:30, s:44,l:66}, {h:270,s:44,l:66}, {h:335,s:74,l:70}, {h:85, s:74,l:66},
+  {h:165,s:74,l:66}, {h:160,s:50,l:82}, {h:215,s:74,l:66}, {h:270,s:74,l:78}
+];
+function tplColor(school,tid){
+  const ids=Object.keys(school.templates||{});
+  const i=ids.indexOf(tid);
+  if(i<0)return 'var(--soft)';
+  const c=PALETTE[i%PALETTE.length], tier=Math.floor(i/PALETTE.length);
+  return `hsl(${c.h} ${c.s}% ${Math.max(56,c.l-tier*10)}%)`;
+}
+
+function schoolYearStart(now){
+  const y=now.getFullYear();
+  return now.getMonth()>=7 ? {y, m:7} : {y:y-1, m:7};   // August of the current school year
+}
+
+function showTip(e,text){
+  const tip=$('daytip');
+  tip.textContent=text;
+  tip.setAttribute('data-on','');tip.setAttribute('aria-hidden','false');
+  moveTip(e);
+}
+function moveTip(e){
+  const tip=$('daytip'),pad=14,w=tip.offsetWidth,hh=tip.offsetHeight;
+  let x=e.clientX+pad,y=e.clientY+pad;
+  if(x+w>innerWidth-8)x=e.clientX-w-pad;
+  if(y+hh>innerHeight-8)y=Math.max(8,e.clientY-hh-pad);
+  tip.style.left=x+'px';tip.style.top=y+'px';
+}
+function hideTip(){
+  const tip=$('daytip');
+  tip.removeAttribute('data-on');tip.setAttribute('aria-hidden','true');
+}
+
+function renderYear(){
+  const school=data.schools[schoolId];
+  if(!school)return;
+  const today=new Date();
+  const todayIso=new Intl.DateTimeFormat('en-CA',{timeZone:school.timezone||'America/Chicago',
+    year:'numeric',month:'2-digit',day:'2-digit'}).format(today);
+  const start=schoolYearStart(today);
+
+  $('year-title').textContent='Year at a Glance';
+  $('year-sub').textContent=`${school.name} \u00b7 ${MONTHS[start.m]} ${start.y} to June ${start.y+1}`;
+
+  const box=$('year-months');box.innerHTML='';
+  const used=new Map();
+  let y=start.y,m=start.m;
+
+  for(let k=0;k<11;k++){
+    const wrap=document.createElement('div');wrap.className='month';
+    const title=document.createElement('h3');title.textContent=`${MONTHS[m]} ${y}`;wrap.appendChild(title);
+    const dow=document.createElement('div');dow.className='dow';
+    dow.innerHTML=['S','M','T','W','T','F','S'].map(d=>`<span>${d}</span>`).join('');
+    wrap.appendChild(dow);
+
+    const days=document.createElement('div');days.className='days';
+    const first=new Date(y,m,1).getDay(), total=new Date(y,m+1,0).getDate();
+    for(let i=0;i<first;i++){const e=document.createElement('div');e.className='day out';days.appendChild(e)}
+    for(let d=1;d<=total;d++){
+      const iso=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const wd=new Date(y,m,d).getDay();
+      const cell=document.createElement('div');
+      cell.className='day'+((wd===0||wd===6)?' we':'');
+      if(iso===todayIso)cell.classList.add('today');
+      cell.textContent=d;
+
+      const r=resolveDay(school,iso);
+      const label=r.template?(r.template.label||r.templateId):null;
+      if(label&&(r.template.periods||[]).length===0){
+        // a no-class day still gets its colour, so breaks stand out
+        cell.classList.add('has');
+        cell.style.background=tplColor(school,r.templateId);
+        used.set(r.templateId,label);
+      }else if(label){
+        cell.classList.add('has');
+        cell.style.background=tplColor(school,r.templateId);
+        used.set(r.templateId,label);
+      }
+      const tipText=label||'No schedule';
+      cell.onmouseenter=e=>showTip(e,tipText);
+      cell.onmousemove=moveTip;
+      cell.onmouseleave=hideTip;
+      days.appendChild(cell);
+    }
+    wrap.appendChild(days);box.appendChild(wrap);
+    m++;if(m>11){m=0;y++}
+  }
+
+  const leg=$('year-legend');leg.innerHTML='';
+  Object.keys(school.templates||{}).filter(t=>used.has(t)).forEach(tid=>{
+    const s=document.createElement('span');
+    s.innerHTML=`<i style="background:${tplColor(school,tid)}"></i>${used.get(tid)}`;
+    leg.appendChild(s);
+  });
+}
+
 /* ---------- wiring ---------- */
 $('school-name').onclick=()=>showPicker('Pick a different school.');
 $('theme-btn').onclick=()=>applyTheme(theme==='auto'?'light':theme==='light'?'dark':'auto');
+$('year-btn').onclick=()=>{renderYear();view('year')};
+$('year-back').onclick=()=>{hideTip();view('clock');render()};
+addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.dataset.view==='year'){hideTip();view('clock')}});
 
 async function boot(){
   view('loading');
